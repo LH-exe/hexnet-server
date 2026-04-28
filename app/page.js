@@ -417,6 +417,10 @@ export default function Home() {
                     <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>ALPHA</label>
                     <input type="number" step="0.1" min="0" max="1" value={cmd.cw_alpha} onChange={(e) => sendCommand({ cw_alpha: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} />
                   </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>MDD (INV)</label>
+                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_mdd} onChange={(e) => sendCommand({ cw_mdd: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Median Drawdown (Inverted: Higher score rewards smaller drawdowns)"/>
+                  </div>
                 </div>
               )}
 
@@ -513,6 +517,14 @@ export default function Home() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL EV ($)</label>
                       <input type="number" step="1.0" value={cmd.ideal_ev} onChange={(e) => sendCommand({ ideal_ev: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL MDD ($)</label>
+                      <input type="number" step="1.0" value={cmd.ideal_mdd} onChange={(e) => sendCommand({ ideal_mdd: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target Median Drawdown per trade" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ef5350', fontWeight: 'bold' }}>MAX MDD ($)</label>
+                      <input type="number" step="1.0" value={cmd.max_mdd} onChange={(e) => sendCommand({ max_mdd: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Absolute Limit: Any strategy exceeding this median drawdown is instantly killed" />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN WFE %</label>
