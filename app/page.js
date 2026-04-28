@@ -80,11 +80,8 @@ export default function Home() {
 
     // Highly Optimized Adaptive Status Poller
     const pollCommandState = async () => {
-      // ANTI-ZOMBIE MEASURE: Stop polling if tab is hidden
-      if (document.hidden) {
-        timeoutId = setTimeout(pollCommandState, 5000); 
-        return; 
-      }
+      // DEEP SLEEP: Stop polling entirely if tab is hidden
+      if (document.hidden) return; 
 
       try {
         const resCmd = await fetch('/api/command');
@@ -104,7 +101,11 @@ export default function Home() {
               fetch_pct: jsonCmd.fetch_pct, stage_text: jsonCmd.stage_text, auto_max: jsonCmd.auto_max,
               trade_progress: jsonCmd.trade_progress || prev.trade_progress,
               available_strats: jsonCmd.available_strats || prev.available_strats,
-              active_strats: jsonCmd.active_strats || prev.active_strats
+              active_strats: jsonCmd.active_strats || prev.active_strats,
+              // Sync the new MDD variables!
+              ideal_mdd: jsonCmd.ideal_mdd !== undefined ? jsonCmd.ideal_mdd : prev.ideal_mdd,
+              max_mdd: jsonCmd.max_mdd !== undefined ? jsonCmd.max_mdd : prev.max_mdd,
+              cw_mdd: jsonCmd.cw_mdd !== undefined ? jsonCmd.cw_mdd : prev.cw_mdd
             };
           });
 
@@ -117,12 +118,7 @@ export default function Home() {
         }
         setLastUpdate(new Date().toLocaleTimeString());
 
-        // DEEP SLEEP ADAPTIVE POLLING (Protects Vercel API Limits)
-        if (document.hidden) {
-          // If the tab is completely hidden/minimized, stop polling entirely.
-          return; 
-        }
-
+        // ADAPTIVE POLLING SPEED (Protects Vercel API Limits)
         let nextPingDelay = 15000; // Default: 15 seconds if idle
         
         if (jsonCmd?.engine_status === 'running' || jsonCmd?.engine_status === 'fetching') {
@@ -133,15 +129,29 @@ export default function Home() {
         
         timeoutId = setTimeout(pollCommandState, nextPingDelay);
 
-        // Add a visibility listener to instantly wake up the poller when you return to the tab
-        document.onvisibilitychange = () => {
-          if (!document.hidden && !timeoutId) { pollCommandState(); }
-        };
+      } catch (err) { 
+        setLastUpdate("Offline / Error");
+        timeoutId = setTimeout(pollCommandState, 30000); // Back off to 30s on failure
+      }
+    };
     
     pollCommandState();
-    return () => clearTimeout(timeoutId);
-  }, []);
 
+    // WAKE UP INSTANTLY: When user returns to the tab, immediately check state
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        clearTimeout(timeoutId);
+        pollCommandState();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+  
   const sendCommand = async (updates) => {
     const newState = { ...cmd, ...updates };
     setCmd(newState);
