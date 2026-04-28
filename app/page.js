@@ -117,22 +117,26 @@ export default function Home() {
         }
         setLastUpdate(new Date().toLocaleTimeString());
 
-        // ADAPTIVE POLLING SPEED
-        let nextPingDelay = 10000; // Default: 10s if idle
+        // DEEP SLEEP ADAPTIVE POLLING (Protects Vercel API Limits)
+        if (document.hidden) {
+          // If the tab is completely hidden/minimized, stop polling entirely.
+          return; 
+        }
+
+        let nextPingDelay = 15000; // Default: 15 seconds if idle
         
         if (jsonCmd?.engine_status === 'running' || jsonCmd?.engine_status === 'fetching') {
-          nextPingDelay = 3000; // Fast: 3s if active
+          nextPingDelay = 3000; // Fast: 3 seconds if actively crunching numbers
         } else if (jsonCmd?.engine_status === 'offline') {
-          nextPingDelay = 30000; // Slow: 30s if desktop app closed
+          nextPingDelay = 60000; // Deep Sleep: 60 seconds if the desktop app is closed
         }
         
         timeoutId = setTimeout(pollCommandState, nextPingDelay);
 
-      } catch (err) { 
-        setLastUpdate("Offline / Error");
-        timeoutId = setTimeout(pollCommandState, 30000); 
-      }
-    };
+        // Add a visibility listener to instantly wake up the poller when you return to the tab
+        document.onvisibilitychange = () => {
+          if (!document.hidden && !timeoutId) { pollCommandState(); }
+        };
     
     pollCommandState();
     return () => clearTimeout(timeoutId);
