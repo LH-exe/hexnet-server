@@ -4,34 +4,18 @@ import { useEffect, useState, useRef } from 'react';
 // --- Safe SVG Equity Curve Renderer ---
 const Sparkline = ({ data, color }) => {
   let parsedData = [];
-  
-  try {
-    parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-  } catch (e) {
-    return <span style={{color: '#787b86'}}>Data Error</span>;
-  }
-  
-  if (!Array.isArray(parsedData) || parsedData.length === 0) {
-    return <span style={{color: '#787b86'}}>No Trades</span>;
-  }
+  try { parsedData = typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return <span style={{color: '#787b86'}}>Data Error</span>; }
+  if (!Array.isArray(parsedData) || parsedData.length === 0) return <span style={{color: '#787b86'}}>No Trades</span>;
   
   const min = Math.min(...parsedData);
   const max = Math.max(...parsedData);
   const range = max - min === 0 ? 1 : max - min;
-  
-  const points = parsedData.map((val, i) => {
-    const x = (i / (parsedData.length - 1)) * 100;
-    const y = 100 - ((val - min) / range) * 100;
-    return `${x},${y}`;
-  }).join(' ');
-
+  const points = parsedData.map((val, i) => { return `${(i / (parsedData.length - 1)) * 100},${100 - ((val - min) / range) * 100}`; }).join(' ');
   const zeroY = 100 - ((0 - min) / range) * 100;
 
   return (
     <svg viewBox="0 -5 100 110" preserveAspectRatio="none" style={{ width: '100%', minWidth: '120px', height: '45px', overflow: 'visible', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
-      {min < 0 && max > 0 && (
-        <line x1="0" y1={zeroY} x2="100" y2={zeroY} stroke="#555" strokeDasharray="3" strokeWidth="1.5" />
-      )}
+      {min < 0 && max > 0 && <line x1="0" y1={zeroY} x2="100" y2={zeroY} stroke="#555" strokeDasharray="3" strokeWidth="1.5" />}
       <polyline fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={points} />
     </svg>
   );
@@ -43,42 +27,31 @@ export default function Home() {
   
   const isFirstLoad = useRef(true); 
   const previousStatus = useRef('offline');
-
   const [activeTab, setActiveTab] = useState('generator');
 
   const [cmd, setCmd] = useState({
-    status: 'idle', engine_status: 'offline', mode: 'Generate Random Strategies', strategy: '', sims: 1000, sort: 'Composite Score (Best Overall)', auto: true, auto_max: 10, available_strats: [],
-    active_strats: [], 
+    status: 'idle', engine_status: 'offline', mode: 'Generate Random Strategies', strategy: '', sims: 1000, sort: 'Composite Score (Best Overall)', auto: true, auto_max: 10, available_strats: [], active_strats: [], 
     adv_enabled: false, sma_min: 10, sma_max: 200, tp_min: 0.1, tp_max: 100.0, sl_min: 0.1, sl_max: 100.0, logic_max: 2, 
-    ideal_tpd: 3.0, ideal_ev: 10.0, ideal_add: 10.0, max_add: 50.0, 
-    ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, ideal_tpd_ret: 80.0, 
-    min_wfe: 50.0, min_wr: 40.0, min_pnl: 0.0, min_sharpe: 1.0,
-    cw_wfe: 1.0, cw_wr: 1.0, cw_pnl: 1.0, cw_ev: 1.0, cw_sharpe: 1.0, cw_alpha: 1.0, cw_add: 1.0, cw_al: 1.0, cw_tpd_ret: 1.0, 
-    use_genetic: false, progress: 0, total_sims: 1000, eta: '--:--:--', sims_sec: 0,
-    trade_progress: { current: 0, total: 0 },
+    ideal_tpd: 3.0, min_tpd: 1.0, ideal_ev: 10.0, ideal_add: 10.0, max_add: 50.0, 
+    ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, min_wr: 40.0, ideal_tpd_ret: 80.0, min_tpd_ret: 50.0, ideal_sharpe: 3.0, min_sharpe: 1.0, min_pnl: 0.0,
+    cw_wr: 1.0, cw_pnl: 1.0, cw_ev: 1.0, cw_sharpe: 1.0, cw_alpha: 1.0, cw_add: 1.0, cw_al: 1.0, cw_tpd_ret: 1.0, cw_tpd: 1.0,
+    use_genetic: false, progress: 0, total_sims: 1000, eta: '--:--:--', sims_sec: 0, trade_progress: { current: 0, total: 0 },
     data_ticker: 'NONE', data_start: 'N/A', data_end: 'N/A', fetch_ticker: 'SPY', fetch_interval: '1m', fetch_start: '', fetch_end: '', fetch_rth: true, fetch_pct: 0,
-    is_start: '', is_end: '', oos_list: [{ start: '', end: '' }],
-    hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }],
-    lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }],
-    stage_text: ''
+    is_start: '', is_end: '', oos_list: [{ start: '', end: '' }], hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }], lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: ''
   });
 
   useEffect(() => {
     let timeoutId;
-
     const fetchTableData = async () => {
       try {
         const resData = await fetch('/api/upload');
         const jsonData = await resData.json();
         if (jsonData && jsonData.length > 0) setData(jsonData);
-      } catch (err) {
-        console.error("Data fetch error:", err);
-      }
+      } catch (err) { console.error("Data fetch error:", err); }
     };
 
     fetchTableData();
 
-    // Highly Optimized Adaptive Status Poller
     const pollCommandState = async () => {
       if (document.hidden) return; 
 
@@ -101,16 +74,23 @@ export default function Home() {
               trade_progress: jsonCmd.trade_progress || prev.trade_progress,
               available_strats: jsonCmd.available_strats || prev.available_strats,
               active_strats: jsonCmd.active_strats || prev.active_strats,
-              
               ideal_add: jsonCmd.ideal_add !== undefined ? jsonCmd.ideal_add : prev.ideal_add,
               max_add: jsonCmd.max_add !== undefined ? jsonCmd.max_add : prev.max_add,
               ideal_al: jsonCmd.ideal_al !== undefined ? jsonCmd.ideal_al : prev.ideal_al,
               max_al: jsonCmd.max_al !== undefined ? jsonCmd.max_al : prev.max_al,
               ideal_wr: jsonCmd.ideal_wr !== undefined ? jsonCmd.ideal_wr : prev.ideal_wr,
+              min_wr: jsonCmd.min_wr !== undefined ? jsonCmd.min_wr : prev.min_wr,
               ideal_tpd_ret: jsonCmd.ideal_tpd_ret !== undefined ? jsonCmd.ideal_tpd_ret : prev.ideal_tpd_ret,
+              min_tpd_ret: jsonCmd.min_tpd_ret !== undefined ? jsonCmd.min_tpd_ret : prev.min_tpd_ret,
+              ideal_sharpe: jsonCmd.ideal_sharpe !== undefined ? jsonCmd.ideal_sharpe : prev.ideal_sharpe,
+              min_sharpe: jsonCmd.min_sharpe !== undefined ? jsonCmd.min_sharpe : prev.min_sharpe,
+              min_pnl: jsonCmd.min_pnl !== undefined ? jsonCmd.min_pnl : prev.min_pnl,
+              ideal_tpd: jsonCmd.ideal_tpd !== undefined ? jsonCmd.ideal_tpd : prev.ideal_tpd,
+              min_tpd: jsonCmd.min_tpd !== undefined ? jsonCmd.min_tpd : prev.min_tpd,
               cw_add: jsonCmd.cw_add !== undefined ? jsonCmd.cw_add : prev.cw_add,
               cw_al: jsonCmd.cw_al !== undefined ? jsonCmd.cw_al : prev.cw_al,
-              cw_tpd_ret: jsonCmd.cw_tpd_ret !== undefined ? jsonCmd.cw_tpd_ret : prev.cw_tpd_ret
+              cw_tpd_ret: jsonCmd.cw_tpd_ret !== undefined ? jsonCmd.cw_tpd_ret : prev.cw_tpd_ret,
+              cw_tpd: jsonCmd.cw_tpd !== undefined ? jsonCmd.cw_tpd : prev.cw_tpd
             };
           });
 
@@ -124,15 +104,10 @@ export default function Home() {
         setLastUpdate(new Date().toLocaleTimeString());
 
         let nextPingDelay = 15000; 
-        
-        if (jsonCmd?.engine_status === 'running' || jsonCmd?.engine_status === 'fetching') {
-          nextPingDelay = 3000; 
-        } else if (jsonCmd?.engine_status === 'offline') {
-          nextPingDelay = 60000; 
-        }
+        if (jsonCmd?.engine_status === 'running' || jsonCmd?.engine_status === 'fetching') nextPingDelay = 3000; 
+        else if (jsonCmd?.engine_status === 'offline') nextPingDelay = 60000; 
         
         timeoutId = setTimeout(pollCommandState, nextPingDelay);
-
       } catch (err) { 
         setLastUpdate("Offline / Error");
         timeoutId = setTimeout(pollCommandState, 30000); 
@@ -142,43 +117,27 @@ export default function Home() {
     pollCommandState();
 
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        clearTimeout(timeoutId);
-        pollCommandState();
-      }
+      if (!document.hidden) { clearTimeout(timeoutId); pollCommandState(); }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+    return () => { clearTimeout(timeoutId); document.removeEventListener("visibilitychange", handleVisibilityChange); };
   }, []);
   
   const sendCommand = async (updates) => {
     const newState = { ...cmd, ...updates };
     setCmd(newState);
-    await fetch('/api/command', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newState) 
-    });
+    await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newState) });
   };
 
   const handleToggleStrategy = (stratName) => {
     let newActive = [...(cmd.active_strats || [])];
-    if (newActive.includes(stratName)) {
-      newActive = newActive.filter(s => s !== stratName);
-    } else {
-      newActive.push(stratName);
-    }
+    if (newActive.includes(stratName)) newActive = newActive.filter(s => s !== stratName);
+    else newActive.push(stratName);
     sendCommand({ active_strats: newActive });
   };
 
   const startBacktest = () => {
-    setCmd(prev => ({ 
-      ...prev, 
-      engine_status: 'running', 
-      stage_text: 'Calculating Strategy Data...' 
-    }));
+    setCmd(prev => ({ ...prev, engine_status: 'running', stage_text: 'Calculating Strategy Data...' }));
     sendCommand({ status: 'backtest_requested', mode: 'Backtest Specific Strategies', active_strats: cmd.active_strats });
   };
 
@@ -403,10 +362,7 @@ export default function Home() {
               {cmd.sort === 'Custom Score' && (
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', padding: '15px', backgroundColor: '#131722', borderRadius: '6px', border: '1px solid #00bcd4', width: '100%', marginTop: '15px', marginBottom: '10px' }}>
                   <div style={{ width: '100%', fontSize: '13px', color: '#00bcd4', fontWeight: 'bold', marginBottom: '-5px' }}>CUSTOM FITNESS WEIGHTS (0.0 to 1.0)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>WFE</label>
-                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_wfe} onChange={(e) => sendCommand({ cw_wfe: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} />
-                  </div>
+                  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>WIN RATE</label>
                     <input type="number" step="0.1" min="0" max="1" value={cmd.cw_wr} onChange={(e) => sendCommand({ cw_wr: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} />
@@ -432,8 +388,12 @@ export default function Home() {
                     <input type="number" step="0.1" min="0" max="1" value={cmd.cw_add} onChange={(e) => sendCommand({ cw_add: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Average Drawdown"/>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>AVG. LOSS (INV)</label>
-                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_al} onChange={(e) => sendCommand({ cw_al: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Average Loss"/>
+                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>MED. LOSS (INV)</label>
+                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_al} onChange={(e) => sendCommand({ cw_al: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Median Loss (Inverted: Higher score rewards smaller losses)"/>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>TPD</label>
+                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_tpd} onChange={(e) => sendCommand({ cw_tpd: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Trades Per Day"/>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>TPD RET</label>
@@ -503,39 +463,58 @@ export default function Home() {
 
                 {cmd.adv_enabled && (
                   <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', padding: '15px', backgroundColor: '#131722', borderRadius: '6px', border: '1px solid #ffb74d', flex: 1, minWidth: '400px' }}>
+                    {/* BASE MECHANICS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>SMA MIN/MAX</label>
+                      <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold' }}>SMA MIN/MAX</label>
                       <div style={{ display: 'flex', gap: '5px' }}>
                         <input type="number" value={cmd.sma_min} onChange={(e) => sendCommand({ sma_min: parseInt(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                         <input type="number" value={cmd.sma_max} onChange={(e) => sendCommand({ sma_max: parseInt(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>TP MIN/MAX</label>
+                      <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold' }}>TP MIN/MAX</label>
                       <div style={{ display: 'flex', gap: '5px' }}>
                         <input type="number" step="0.1" value={cmd.tp_min} onChange={(e) => sendCommand({ tp_min: parseFloat(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                         <input type="number" step="0.1" value={cmd.tp_max} onChange={(e) => sendCommand({ tp_max: parseFloat(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>SL MIN/MAX</label>
+                      <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold' }}>SL MIN/MAX</label>
                       <div style={{ display: 'flex', gap: '5px' }}>
                         <input type="number" step="0.1" value={cmd.sl_min} onChange={(e) => sendCommand({ sl_min: parseFloat(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                         <input type="number" step="0.1" value={cmd.sl_max} onChange={(e) => sendCommand({ sl_max: parseFloat(e.target.value) })} style={{ width: '60px', ...inputStyle }} />
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>MAX GATES</label>
+                      <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold' }}>MAX GATES</label>
                       <input type="number" value={cmd.logic_max} onChange={(e) => sendCommand({ logic_max: parseInt(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
                     </div>
+
+                    {/* TPD GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL TPD</label>
                       <input type="number" step="0.5" value={cmd.ideal_tpd} onChange={(e) => sendCommand({ ideal_tpd: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN TPD</label>
+                      <input type="number" step="0.1" value={cmd.min_tpd} onChange={(e) => sendCommand({ min_tpd: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL TPD RET %</label>
+                      <input type="number" step="1.0" value={cmd.ideal_tpd_ret} onChange={(e) => sendCommand({ ideal_tpd_ret: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target TPD Retention percentage" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN TPD RET %</label>
+                      <input type="number" step="1.0" value={cmd.min_tpd_ret} onChange={(e) => sendCommand({ min_tpd_ret: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
+                    </div>
+
+                    {/* EV GROUP */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL EV (PTS)</label>
                       <input type="number" step="1.0" value={cmd.ideal_ev} onChange={(e) => sendCommand({ ideal_ev: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
                     </div>
+
+                    {/* ADD GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL ADD (PTS)</label>
                       <input type="number" step="1.0" value={cmd.ideal_add} onChange={(e) => sendCommand({ ideal_add: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target Average Drawdown per trade" />
@@ -544,6 +523,8 @@ export default function Home() {
                       <label style={{ fontSize: '11px', color: '#ef5350', fontWeight: 'bold' }}>MAX ADD (PTS)</label>
                       <input type="number" step="1.0" value={cmd.max_add} onChange={(e) => sendCommand({ max_add: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Absolute Limit: Any strategy exceeding this average drawdown is instantly killed" />
                     </div>
+
+                    {/* AL GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL AVG. LOSS</label>
                       <input type="number" step="0.1" value={cmd.ideal_al} onChange={(e) => sendCommand({ ideal_al: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target Average Loss per losing trade" />
@@ -552,29 +533,31 @@ export default function Home() {
                       <label style={{ fontSize: '11px', color: '#ef5350', fontWeight: 'bold' }}>MAX AVG. LOSS</label>
                       <input type="number" step="0.1" value={cmd.max_al} onChange={(e) => sendCommand({ max_al: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Absolute Limit for Average Loss" />
                     </div>
+
+                    {/* WR GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL WINRATE %</label>
                       <input type="number" step="1.0" value={cmd.ideal_wr} onChange={(e) => sendCommand({ ideal_wr: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target Win Rate percentage" />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL TPD RET %</label>
-                      <input type="number" step="1.0" value={cmd.ideal_tpd_ret} onChange={(e) => sendCommand({ ideal_tpd_ret: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} title="Target TPD Retention percentage" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN WFE %</label>
-                      <input type="number" step="1.0" value={cmd.min_wfe} onChange={(e) => sendCommand({ min_wfe: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN WR %</label>
                       <input type="number" step="1.0" value={cmd.min_wr} onChange={(e) => sendCommand({ min_wr: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
                     </div>
+
+                    {/* SHARPE GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN NET PNL</label>
-                      <input type="number" step="1.0" value={cmd.min_pnl} onChange={(e) => sendCommand({ min_pnl: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
+                      <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL SHARPE</label>
+                      <input type="number" step="0.1" value={cmd.ideal_sharpe} onChange={(e) => sendCommand({ ideal_sharpe: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN SHARPE</label>
                       <input type="number" step="0.1" value={cmd.min_sharpe} onChange={(e) => sendCommand({ min_sharpe: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
+                    </div>
+
+                    {/* MISC */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN NET PNL</label>
+                      <input type="number" step="1.0" value={cmd.min_pnl} onChange={(e) => sendCommand({ min_pnl: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
                     </div>
                   </div>
                 )}
@@ -601,7 +584,6 @@ export default function Home() {
                   <th style={{ padding: '15px 20px', color: '#787b86' }}>Net PnL</th> 
                   <th style={{ padding: '15px 20px', color: '#787b86' }}>Exp. Value</th> 
                   <th style={{ padding: '15px 20px', color: '#ffb74d' }}>Alpha</th> 
-                  {/* --- NEW HEADER COLUMNS --- */}
                   <th style={{ padding: '15px 20px', color: '#ffb74d' }}>{data[0]?.PF !== undefined ? 'PF' : 'ADD (Pts)'}</th> 
                   <th style={{ padding: '15px 20px', color: '#ab47bc' }}>{data[0]?.PF !== undefined ? '' : 'TPD Ret %'}</th> 
                   <th style={{ padding: '15px 20px', color: '#ab47bc' }}>{data[0]?.PF !== undefined ? '' : 'WFE %'}</th> 
@@ -627,21 +609,18 @@ export default function Home() {
                     <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#ab47bc' }}>{row.EV?.toFixed(2)}</td> 
                     <td style={{ padding: '15px 20px', color: row.Alpha >= 0 ? '#ffb74d' : '#ef5350', fontWeight: 'bold' }}>{row.Alpha?.toFixed(2)}</td> 
                     
-                    {/* --- NEW ADD / PF DATA CELL --- */}
                     <td style={{ padding: '15px 20px', color: '#ffb74d', fontWeight: 'bold' }}>
                       {data[0]?.PF !== undefined 
                         ? (row.PF !== undefined ? row.PF.toFixed(2) : 'N/A') 
                         : (row.AverageDD !== undefined ? `${row.AverageDD.toFixed(2)}` : 'N/A')}
                     </td> 
 
-                    {/* --- NEW TPD RETENTION CELL --- */}
                     <td style={{ padding: '15px 20px', color: '#ab47bc', fontWeight: 'bold' }}>
                       {data[0]?.PF !== undefined 
                         ? '' 
                         : (row.TPD_Ret !== undefined ? `${row.TPD_Ret.toFixed(1)}%` : 'N/A')}
                     </td>
 
-                    {/* --- ISOLATED WFE DATA CELL --- */}
                     <td style={{ padding: '15px 20px', color: '#ab47bc', fontWeight: 'bold' }}>
                       {data[0]?.PF !== undefined 
                         ? '' 
