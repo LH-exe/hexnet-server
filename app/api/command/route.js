@@ -3,14 +3,12 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createClient } from 'redis';
 
-// Grab the standard Redis URL from Vercel's secure environment
 const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
 
 if (!redisUrl) {
   console.error("🚨 CRITICAL ERROR: REDIS_URL environment variable is missing!");
 }
 
-// Create a singleton client for the serverless environment
 let redisClient = null;
 
 async function getClient() {
@@ -32,10 +30,10 @@ const DEFAULT_STATE = {
   available_strats: [], active_strats: [],
   adv_enabled: false, sma_min: 10, sma_max: 200, tp_min: 0.1, tp_max: 100.0,
   sl_min: 0.1, sl_max: 100.0, logic_max: 2, 
-  ideal_tpd: 3.0, ideal_ev: 10.0, ideal_add: 10.0, max_add: 50.0,
-  ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, ideal_tpd_ret: 80.0,
-  min_wfe: 50.0, min_wr: 40.0, min_pnl: 0.0, min_sharpe: 1.0,
-  cw_wfe: 1.0, cw_wr: 1.0, cw_pnl: 1.0, cw_ev: 1.0, cw_sharpe: 1.0, cw_alpha: 1.0, cw_add: 1.0, cw_al: 1.0, cw_tpd_ret: 1.0,
+  ideal_tpd: 3.0, min_tpd: 1.0, ideal_ev: 10.0, ideal_add: 10.0, max_add: 50.0,
+  ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, min_wr: 40.0,
+  ideal_tpd_ret: 80.0, min_tpd_ret: 50.0, ideal_sharpe: 3.0, min_sharpe: 1.0, min_pnl: 0.0,
+  cw_wr: 1.0, cw_pnl: 1.0, cw_ev: 1.0, cw_sharpe: 1.0, cw_alpha: 1.0, cw_add: 1.0, cw_al: 1.0, cw_tpd_ret: 1.0, cw_tpd: 1.0,
   use_genetic: false, progress: 0, total_sims: 1000, trade_progress: { current: 0, total: 0 },
   eta: '--:--:--', sims_sec: 0, data_ticker: 'NONE', data_start: 'N/A', data_end: 'N/A',
   fetch_ticker: 'SPY', fetch_interval: '1m', fetch_start: '', fetch_end: '',
@@ -52,7 +50,6 @@ export async function GET() {
     let state = rawData ? JSON.parse(rawData) : DEFAULT_STATE;
 
     const now = Date.now();
-    // If Python hasn't pinged in 30 seconds, mark it offline
     if (now - (state.last_seen || 0) > 30000) {
       state.engine_status = 'offline';
       if (['sync_requested', 'stop_requested', 'fetch_requested', 'backtest_requested'].includes(state.status)) {
@@ -76,10 +73,8 @@ export async function POST(req) {
     const rawData = await client.get('hexnet_command_state');
     let currentState = rawData ? JSON.parse(rawData) : DEFAULT_STATE;
 
-    // Merge the new updates into the persistent state
     const newState = { ...currentState, ...body };
     
-    // Update the heartbeat timestamp ONLY if the Python engine is the one pinging
     if (body.engine_status) newState.last_seen = Date.now();
 
     await client.set('hexnet_command_state', JSON.stringify(newState));
