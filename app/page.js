@@ -32,8 +32,8 @@ export default function Home() {
   const [cmd, setCmd] = useState({
     status: 'idle', engine_status: 'offline', mode: 'Generate Random Strategies', strategy: '', sims: 1000, sort: 'Composite Score (Best Overall)', auto: true, auto_max: 10, available_strats: [], active_strats: [], 
     adv_enabled: false, sma_min: 10, sma_max: 200, tp_min: 0.1, tp_max: 100.0, sl_min: 0.1, sl_max: 100.0, logic_max: 2, 
-    ideal_tpd: 3.0, min_tpd: 1.0, ideal_ev: 10.0, ideal_add: 10.0, max_add: 50.0, 
-    ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, min_wr: 40.0, ideal_tpd_ret: 80.0, min_tpd_ret: 50.0, ideal_sharpe: 3.0, min_sharpe: 1.0, min_pnl: 0.0,
+    ideal_tpd: 3.0, min_tpd: 1.0, ideal_ev: 10.0, min_ev: 0.0, ideal_add: 10.0, max_add: 50.0, 
+    ideal_al: 1.0, max_al: 5.0, ideal_wr: 60.0, min_wr: 40.0, ideal_tpd_ret: 80.0, min_tpd_ret: 50.0, ideal_sharpe: 3.0, min_sharpe: 1.0, min_pnl: 0.0, min_wfe: 50.0,
     cw_wr: 1.0, cw_pnl: 1.0, cw_ev: 1.0, cw_sharpe: 1.0, cw_alpha: 1.0, cw_add: 1.0, cw_al: 1.0, cw_tpd_ret: 1.0, cw_tpd: 1.0,
     use_genetic: false, progress: 0, total_sims: 1000, eta: '--:--:--', sims_sec: 0, trade_progress: { current: 0, total: 0 },
     data_ticker: 'NONE', data_start: 'N/A', data_end: 'N/A', fetch_ticker: 'SPY', fetch_interval: '1m', fetch_start: '', fetch_end: '', fetch_rth: true, fetch_pct: 0,
@@ -85,6 +85,8 @@ export default function Home() {
               ideal_sharpe: jsonCmd.ideal_sharpe !== undefined ? jsonCmd.ideal_sharpe : prev.ideal_sharpe,
               min_sharpe: jsonCmd.min_sharpe !== undefined ? jsonCmd.min_sharpe : prev.min_sharpe,
               min_pnl: jsonCmd.min_pnl !== undefined ? jsonCmd.min_pnl : prev.min_pnl,
+              min_wfe: jsonCmd.min_wfe !== undefined ? jsonCmd.min_wfe : prev.min_wfe,
+              min_ev: jsonCmd.min_ev !== undefined ? jsonCmd.min_ev : prev.min_ev,
               ideal_tpd: jsonCmd.ideal_tpd !== undefined ? jsonCmd.ideal_tpd : prev.ideal_tpd,
               min_tpd: jsonCmd.min_tpd !== undefined ? jsonCmd.min_tpd : prev.min_tpd,
               cw_add: jsonCmd.cw_add !== undefined ? jsonCmd.cw_add : prev.cw_add,
@@ -389,7 +391,7 @@ export default function Home() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>MED. LOSS (INV)</label>
-                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_al} onChange={(e) => sendCommand({ cw_al: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Median Loss (Inverted: Higher score rewards smaller losses)"/>
+                    <input type="number" step="0.1" min="0" max="1" value={cmd.cw_al} onChange={(e) => sendCommand({ cw_al: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Average Loss (Inverted: Higher score rewards smaller losses)"/>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>TPD</label>
@@ -513,6 +515,10 @@ export default function Home() {
                       <label style={{ fontSize: '11px', color: '#ab47bc', fontWeight: 'bold' }}>IDEAL EV (PTS)</label>
                       <input type="number" step="1.0" value={cmd.ideal_ev} onChange={(e) => sendCommand({ ideal_ev: parseFloat(e.target.value) })} style={{ width: '75px', ...inputStyle }} />
                     </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN EV (PTS)</label>
+                      <input type="number" step="0.5" value={cmd.min_ev} onChange={(e) => sendCommand({ min_ev: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} title="In-Training Purge: Instantly kills strategy if EV is below this value" />
+                    </div>
 
                     {/* ADD GROUP */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -558,6 +564,10 @@ export default function Home() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN NET PNL</label>
                       <input type="number" step="1.0" value={cmd.min_pnl} onChange={(e) => sendCommand({ min_pnl: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '11px', color: '#ffb74d', fontWeight: 'bold' }}>MIN WFE %</label>
+                      <input type="number" step="1.0" value={cmd.min_wfe} onChange={(e) => sendCommand({ min_wfe: parseFloat(e.target.value) })} style={{ width: '80px', ...inputStyle }} title="Post-Processing Filter: Drops strategies below this WFE limit" />
                     </div>
                   </div>
                 )}
