@@ -410,7 +410,7 @@ export default function Home() {
                     <input type="number" step="0.1" min="0" max="1" value={cmd.cw_add} onChange={(e) => sendCommand({ cw_add: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Average Drawdown"/>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>MED. LOSS (INV)</label>
+                    <label style={{ fontSize: '11px', color: '#787b86', fontWeight: 'bold' }}>AVG. Loss(INV)</label>
                     <input type="number" step="0.1" min="0" max="1" value={cmd.cw_al} onChange={(e) => sendCommand({ cw_al: parseFloat(e.target.value) })} style={{ width: '65px', ...inputStyle }} title="Weight for Average Loss (Inverted: Higher score rewards smaller losses)"/>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
