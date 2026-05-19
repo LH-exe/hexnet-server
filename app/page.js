@@ -334,6 +334,12 @@ export default function Home() {
                   <span style={{ fontSize: '12px', color: '#787b86', fontWeight: 'bold' }}>SIMS:</span>
                   <input type="number" value={cmd.sims} onChange={(e) => sendCommand({ sims: parseInt(e.target.value) })} style={{...inputStyle, width: '90px'}} />
                 </div>
+
+                {/* --- NEW GEN COUNT INPUT --- */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ fontSize: '12px', color: '#787b86', fontWeight: 'bold' }}>GENS:</span>
+                  <input type="number" value={cmd.gen_count || 10} onChange={(e) => sendCommand({ gen_count: parseInt(e.target.value) })} style={{...inputStyle, width: '60px'}} title="Manual Generation Override" />
+                </div>
                 
                 <select value={cmd.sort} onChange={(e) => sendCommand({ sort: e.target.value })} style={{...inputStyle, width: '200px'}}>
                   <option>Composite Score (Best Overall)</option>
