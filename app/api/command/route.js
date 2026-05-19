@@ -40,6 +40,7 @@ const DEFAULT_STATE = {
   fetch_rth: true, fetch_pct: 0, is_start: '', is_end: '', oos_list: [{ start: '', end: '' }],
   hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }],
   lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: '',
+  auto: true, auto_max: 10, gen_count: 10, // <--- ADD THIS
   debug_csv_data: []
 };
 
