@@ -39,7 +39,8 @@ const DEFAULT_STATE = {
   fetch_ticker: 'SPY', fetch_interval: '1m', fetch_start: '', fetch_end: '',
   fetch_rth: true, fetch_pct: 0, is_start: '', is_end: '', oos_list: [{ start: '', end: '' }],
   hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }],
-  lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: ''
+  lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: '',
+  debug_csv_data: []
 };
 
 export async function GET() {
