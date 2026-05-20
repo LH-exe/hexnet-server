@@ -658,9 +658,13 @@ export default function Home() {
                         : (row.WFE !== undefined ? `${row.WFE.toFixed(1)}%` : 'N/A')}
                     </td> 
                     
-                    {/* --- NEW STATUS DATA COLUMN --- */}
-                    <td style={{ padding: '15px 20px', color: row.Passed ? '#00e676' : '#ef5350', fontWeight: 'bold' }}>
-                      {row.Passed ? 'PASS' : 'FAIL'}
+                    {/* --- CORRECTED STATUS DATA COLUMN --- */}
+                    <td style={{ 
+                      padding: '15px 20px', 
+                      fontWeight: 'bold', 
+                      color: row.Passed === true || row.Passed === 'true' ? '#00e676' : '#ef5350' 
+                    }}>
+                      {row.Passed === true || row.Passed === 'true' ? 'PASS' : 'FAIL'}
                     </td>
                   </tr> 
                 ))} 
