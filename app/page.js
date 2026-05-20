@@ -219,7 +219,6 @@ export default function Home() {
             </button>
             <a href="/api/upload?download=true" download="hexnet_strategies.csv" style={{ backgroundColor: '#2962ff', color: 'white', padding: '10px 20px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>↓ Download Results</a>
             
-            {/* --- NEW DEBUG STATS BUTTON --- */}
             <button onClick={() => {
               if (!cmd.debug_csv_data || cmd.debug_csv_data.length === 0) { alert("No Debug Stats available. Run an optimization first."); return; }
               const headers = ["Category", "Count", "Low", "25%", "Mean", "Median", "75%", "High"];
@@ -335,7 +334,6 @@ export default function Home() {
                   <input type="number" value={cmd.sims} onChange={(e) => sendCommand({ sims: parseInt(e.target.value) })} style={{...inputStyle, width: '90px'}} />
                 </div>
 
-                {/* --- NEW GEN COUNT INPUT --- */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <span style={{ fontSize: '12px', color: '#787b86', fontWeight: 'bold' }}>GENS:</span>
                   <input type="number" value={cmd.gen_count || 10} onChange={(e) => sendCommand({ gen_count: parseInt(e.target.value) })} style={{...inputStyle, width: '60px'}} title="Manual Generation Override" />
@@ -617,10 +615,13 @@ export default function Home() {
                   <th style={{ padding: '15px 20px', color: '#ffb74d' }}>{data[0]?.PF !== undefined ? 'PF' : 'ADD (Pts)'}</th> 
                   <th style={{ padding: '15px 20px', color: '#ab47bc' }}>{data[0]?.PF !== undefined ? '' : 'TPD Ret %'}</th> 
                   <th style={{ padding: '15px 20px', color: '#ab47bc' }}>{data[0]?.PF !== undefined ? '' : 'WFE %'}</th> 
+                  
+                  {/* --- NEW STATUS HEADER --- */}
+                  <th style={{ padding: '15px 20px', color: '#ffffff' }}>Status</th> 
                 </tr> 
               </thead> 
               <tbody> 
-                {data.slice(0, 15).map((row, i) => ( 
+                {data.slice(0, 260).map((row, i) => ( 
                   <tr key={i} style={{ borderBottom: '1px solid #2b2b36', transition: 'background-color 0.2s', ':hover': { backgroundColor: '#1e222d' } }}> 
                     <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#ffffff' }}>
                       {row.Name ? row.Name : `#${i + 1}`}
@@ -656,6 +657,11 @@ export default function Home() {
                         ? '' 
                         : (row.WFE !== undefined ? `${row.WFE.toFixed(1)}%` : 'N/A')}
                     </td> 
+                    
+                    {/* --- NEW STATUS DATA COLUMN --- */}
+                    <td style={{ padding: '15px 20px', color: row.Passed ? '#00e676' : '#ef5350', fontWeight: 'bold' }}>
+                      {row.Passed ? 'PASS' : 'FAIL'}
+                    </td>
                   </tr> 
                 ))} 
               </tbody>
