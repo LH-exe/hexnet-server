@@ -159,7 +159,7 @@ export default function Home() {
   return (
     <div style={{ padding: '16px', maxWidth: '1720px', margin: '0 auto', minHeight: '100vh' }}>
       
-      {/* GLOBAL TELEMETRY INTERFACE BAR */}
+      {/* HUD DASHBOARD CONSOLE HEAD */}
       <div className="animate-cascade seq-0" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--term-border)', backgroundColor: '#070b11', padding: '12px 18px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -176,7 +176,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* HUD CORE ACTION SHORTCUTS */}
+        {/* CLUSTER HARDWARE CORE UTILITIES */}
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => sendCommand({ status: 'sync_requested' })} disabled={cmd.status === 'sync_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: 'transparent', color: '#ffaa00', border: '1px solid #ffaa00', padding: '6px 14px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', opacity: (cmd.status === 'sync_requested' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
             {cmd.status === 'sync_requested' ? 'SYNCING...' : '[↻ FORCE_DESKTOP_SYNC]'}
@@ -185,7 +185,7 @@ export default function Home() {
             [↓ DOWNLOAD_MATRICES]
           </a>
           <button onClick={() => {
-            if (!cmd.debug_csv_data || cmd.debug_csv_data.length === 0) { alert("Matrix data empty."); return; }
+            if (!cmd.debug_csv_data || cmd.debug_csv_data.length === 0) { alert("Matrix telemetry log array is empty."); return; }
             const headers = ["Category", "Count", "Low", "25%", "Mean", "Median", "75%", "High"];
             const csvContent = [headers.join(","), ...cmd.debug_csv_data.map(row => headers.map(field => `"${row[field] !== undefined ? row[field] : ''}"`).join(","))].join("\n");
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -197,13 +197,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* BACKGROUND SIMULATION PROGRESS DECK */}
+      {/* COMPUTATION GRAPH PIPELINE EXECUTION MONITORS */}
       {cmd.engine_status === 'running' && (
         <div className="animate-cascade seq-0" style={{ background: '#070b11', border: '1px solid var(--term-border)', borderLeft: '3px solid #00f0ff', padding: '12px 16px', marginBottom: '16px' }}>
           {!cmd.stage_text?.includes('Calculating') ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
-                <span style={{ color: '#ffffff', fontWeight: '700' }}>&gt; {cmd.stage_text || 'PROCESSING SYSTEM TASKS'}</span>
+                <span style={{ color: '#ffffff', fontWeight: '700' }}>&gt; {cmd.stage_text || 'PROCESSING LOGICAL PROCESSORS'}</span>
                 <span style={{ color: '#00ff66', fontWeight: '700' }}>{((cmd.progress / (cmd.total_sims || 1)) * 100).toFixed(1)}%</span>
               </div>
               <div style={{ width: '100%', backgroundColor: '#020406', height: '4px', overflow: 'hidden', border: '1px solid var(--term-border)', marginBottom: '8px' }}>
@@ -218,14 +218,14 @@ export default function Home() {
           ) : (
             <div>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#00ff66' }}>
-                <span className="pulse-glow">&gt;&gt;</span> MATRIX CONFIGURED: RUNNING LIVE CLUSTER CALCULATION ROUTINES...
+                <span className="pulse-glow">&gt;&gt;</span> ENGINES ENGAGED: RUNNING LIVE CLUSTER SIMULATION DELEGATION VECTOR SEQUENCES...
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* MAIN NAVIGATION WORKSPACE TABS */}
+      {/* WORKSPACE NAVIGATION CONTROLLERS */}
       <div className="animate-cascade seq-1" style={{ display: 'flex', borderBottom: '1px solid var(--term-border)', marginBottom: '16px', gap: '4px' }}>
         <button onClick={() => setActiveTab('portfolio')} style={{ padding: '10px 20px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'portfolio' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'portfolio' ? '■ ' : ''}[PORTFOLIO_PERFORMANCE]
@@ -238,10 +238,10 @@ export default function Home() {
         </button>
       </div>
 
-      {/* PRINCIPAL CONSOLE CONTEXT AREA */}
+      {/* MAIN DISPLAY INTERFACE LAYER PANEL */}
       <div style={{ backgroundColor: '#070b11', border: '1px solid var(--term-border)', padding: '16px', minHeight: '450px' }}>
         
-        {/* TAB 1: PORTFOLIO MAIN TELEMETRY WORKSPACE */}
+        {/* TAB 1: PORTFOLIO MAIN PERFORMANCE Workspace */}
         {activeTab === 'portfolio' && (
           <div key="viewport-portfolio">
             <div className="animate-cascade seq-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '16px' }}>
@@ -253,12 +253,12 @@ export default function Home() {
               <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
                 <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>FLOATING_MARGIN_PNL</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: '#00f0ff', marginTop: '4px' }}>$0.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>0 ACTIVE POSITION VECTORS</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>0 ACTIVE RISK POSITION VECTORS</div>
               </div>
               <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
                 <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>MAX_DAILY_DRAWDOWN_LIMIT</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffaa00', marginTop: '4px' }}>$5,000.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>BREACH EXPOSURE: LEVEL CLEAN</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>VIOLATION EXPOSURE: LEVEL CLEAR</div>
               </div>
               <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
                 <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>LIVEFIRE_GATE_LINK</div>
@@ -268,11 +268,11 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ACCOUNT CORE HIGH-DENSITY GRID CANVAS GRAPH */}
+            {/* DEDICATED HIGH-DENSITY COORDINATE GRAPH CANVAS GRID */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[PORTFOLIO_EQUITY_FEED_REALTIME]</span>
-                <span style={{ color: '#526685' }}>COORDINATES: SECURE</span>
+                <span style={{ color: '#526685' }}>GRID MATRIX: ACTIVE</span>
               </div>
               <div style={{ height: '220px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '8px' }}>
                 {[105000, 100000, 95000].map((val) => (
@@ -283,19 +283,19 @@ export default function Home() {
                 ))}
                 <div style={{ position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ fontSize: '12px', color: '#526685', background: '#020406', padding: '6px 12px', border: '1px solid var(--term-border)' }}>
-                    &gt; LOGISTICAL PIPELINE COLD — STANDBY FOR PLATFORM ALLOCATION KEY ARRAY
+                    &gt; LOGISTICAL SYSTEM COLD — STANDBY FOR PLATFORM CORE ALLOCATION LINK ARRAYS
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* STDOUT CORE REALTIME LOG STREAM */}
+            {/* REALTIME SYSTEM STDOUT OUTPUT WRAPPER FEED */}
             <div className="animate-cascade seq-2" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
               <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '10px' }}>LIVEFIRE_LOG_STREAM (STDOUT)</div>
               <div style={{ fontSize: '12px', color: '#526685', lineHeight: '1.5', background: '#04070a', padding: '10px', border: '1px solid var(--term-border-muted)', height: '110px', overflowY: 'auto' }}>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> System architecture compiled.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[KV]</span> Command synchronization loop online.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Prop API broker waiting in clean standby setup parameters.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> Core modules compiled inside local node stack.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[KV]</span> Command synchronization matrix loop live.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Prop broker gate standing by on allocation network triggers.</div>
                 <div><span className="pulse-glow" style={{ color: '#00ff66' }}>■</span></div>
               </div>
             </div>
@@ -305,13 +305,13 @@ export default function Home() {
         {/* TAB 2: STRATEGY GENERATOR */}
         {activeTab === 'generator' && (
           <div key="viewport-generator">
-            {/* DATA ENGINE ROUTING INTERFACE SECTION */}
+            {/* DATA ENGINE ROUTING INTERFACE CONTROLS */}
             <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h3 style={{ margin: 0, color: '#00f0ff', fontSize: '13px', fontWeight: '700' }}>[DATA_ROUTING_ENGINE]</h3>
                   <p style={{ margin: '2px 0 0 0', color: '#526685', fontSize: '11px' }}>
-                    TICKER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOW: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
+                    TICKER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOWS: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -340,7 +340,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* GENERATOR SYSTEM WORKSPACE CORE SETTINGS */}
+            {/* GENERATOR WORKSPACE CORE PARAMETERS CONTROL BLOCK */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid var(--term-border)', paddingBottom: '12px', marginBottom: '12px' }}>
                 <select value={cmd.mode} onChange={(e) => sendCommand({ mode: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '220px' }}>
@@ -355,7 +355,7 @@ export default function Home() {
                   </select>
                 )}
                 
-                {/* WIDENED SIMS INPUT PREVENTS LARGE COMPILATION CLIPPING */}
+                {/* REFINED EXTENDED WIDTH BOX HOLDS MILLIONS VALUE INTACT */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>SIMS:</span>
                   <input type="number" value={cmd.sims} onChange={(e) => sendCommand({ sims: parseInt(e.target.value) })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '140px' }} />
@@ -383,9 +383,26 @@ export default function Home() {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#af40ff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                     <input type="checkbox" checked={cmd.use_genetic} onChange={(e) => sendCommand({ use_genetic: e.target.checked })} style={{ accentColor: '#af40ff' }} /> 🧬GENETIC
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00ff66', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={cmd.auto} onChange={(e) => sendCommand({ auto: e.target.checked })} style={{ accentColor: '#00ff66' }} /> LOOP
-                  </label>
+                  
+                  {/* --- LOOP CONDITIONAL CONTROL INTERFACE TRACKER (FIXED) --- */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00ff66', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={cmd.auto} onChange={(e) => sendCommand({ auto: e.target.checked })} style={{ accentColor: '#00ff66' }} /> LOOP
+                    </label>
+                    {cmd.auto && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#070b11', border: '1px solid var(--term-border)', padding: '2px 6px', height: '28px' }}>
+                        <span style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>MAX:</span>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          max="999" 
+                          value={cmd.auto_max || 10} 
+                          onChange={(e) => sendCommand({ auto_max: parseInt(e.target.value) || 1 })} 
+                          style={{ width: '45px', background: 'transparent', color: '#ffffff', border: 'none', outline: 'none', fontSize: '12px', padding: 0, height: '100%', fontWeight: '700' }} 
+                        />
+                      </div>
+                    )}
+                  </div>
                   
                   <button onClick={() => sendCommand({ status: 'start_requested' })} disabled={cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: '#00ff66', color: '#020406', border: 'none', padding: '8px 16px', fontWeight: '700', fontSize: '11px', cursor: 'pointer', opacity: (cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline') ? 0.4 : 1 }}>
                     [LAUNCH]
@@ -396,7 +413,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* DYNAMIC METRIC FITNESS BIAS INPUT LAYER */}
+              {/* DYNAMIC FITNESS CRITERIA WEIGHT CALCULATORS */}
               {cmd.sort === 'Custom Score' && (
                 <div className="animate-cascade seq-2" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px', background: '#070b11', border: '1px dashed #00f0ff', marginBottom: '12px' }}>
                   {[
@@ -412,7 +429,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* RESTORED MODULAR TIMEFRAME APPENDFILE FIELDS FOR OOS EVALUATIONS */}
+              {/* TIMEFRAME MODULAR APPENDFILE SELECTION GENERATOR */}
               <div className="animate-cascade seq-3">
                 {cmd.mode === 'Generate Advanced Optimal Strategy' ? (
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -422,7 +439,7 @@ export default function Home() {
                         <input type="date" value={cmd.hv_start} onChange={(e) => sendCommand({ hv_start: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                         <input type="date" value={cmd.hv_end} onChange={(e) => sendCommand({ hv_end: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                       </div>
-                      <label style={{ fontSize: '10px', color: '#ff3366', fontWeight: '700', display: 'block', marginBottom: '4px' }}>HIGH_VOL OUT-OF-SAMPLE TARGET SLICES</label>
+                      <label style={{ fontSize: '10px', color: '#ff3366', fontWeight: '700', display: 'block', marginBottom: '4px' }}>HIGH_VOL OUT-OF-SAMPLE SLICES</label>
                       {(cmd.hv_oos_list || [{start: '', end: ''}]).map((oos, idx) => (
                         <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
                           <input type="date" value={oos.start} onChange={(e) => { const l = [...cmd.hv_oos_list]; l[idx].start = e.target.value; sendCommand({ hv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
@@ -439,7 +456,7 @@ export default function Home() {
                         <input type="date" value={cmd.lv_start} onChange={(e) => sendCommand({ lv_start: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                         <input type="date" value={cmd.lv_end} onChange={(e) => sendCommand({ lv_end: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                       </div>
-                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>LOW_VOL OUT-OF-SAMPLE TARGET SLICES</label>
+                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>LOW_VOL OUT-OF-SAMPLE SLICES</label>
                       {(cmd.lv_oos_list || [{start: '', end: ''}]).map((oos, idx) => (
                         <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
                           <input type="date" value={oos.start} onChange={(e) => { const l = [...cmd.lv_oos_list]; l[idx].start = e.target.value; sendCommand({ lv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
@@ -453,7 +470,7 @@ export default function Home() {
                 ) : (
                   <div style={{ display: 'flex', gap: '14px', padding: '12px', background: '#070b11', border: '1px solid var(--term-border)' }}>
                     <div>
-                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>IN-SAMPLE STAGE BOUNDS</label>
+                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>IN-SAMPLE RANGE VALIDATOR</label>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <input type="date" value={cmd.is_start} onChange={(e) => sendCommand({ is_start: e.target.value })} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                         <input type="date" value={cmd.is_end} onChange={(e) => sendCommand({ is_end: e.target.value })} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
@@ -474,7 +491,7 @@ export default function Home() {
                 )}
               </div>
 
-              {/* STREAMLINED LOW-PROFILE PARAMETER FILTER FIELD GRID */}
+              {/* STREAMLINED LOW-PROFILE PARAMETER CRITERIA ADVANCED FILTER GRID */}
               {cmd.adv_enabled && (
                 <div className="animate-cascade seq-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', padding: '10px', background: '#04070a', border: '1px dashed rgba(255,170,0,0.4)', marginTop: '12px' }}>
                   {[
@@ -506,14 +523,14 @@ export default function Home() {
         {activeTab === 'backtester' && (
           <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
             
-            {/* COMPACT MATRIX ASSIGNMENT BLOCK */}
+            {/* COMPACT MATRIX SELECTION CONTROL BOX */}
             <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
-                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Highlight dynamic node matrices to run historical verification across execution networks.</p>
+                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Highlight node configurations from the engine buffer pool to cross-verify performance metrics.</p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
-                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT POOL VECTOR</label>
+                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK</label>
                   <select 
                     multiple
                     value={cmd.active_strats || []}
@@ -534,13 +551,13 @@ export default function Home() {
                         </option>
                       ))
                     ) : (
-                      <option disabled style={{ color: '#526685' }}>AWAITING PIPELINE LOG ENTRIES SOURCE OVERFLOW...</option>
+                      <option disabled style={{ color: '#526685' }}>AWAITING DESKTOP SYNC BUFFER ARRAYS STRUCTURE OVERFLOW...</option>
                     )}
                   </select>
                 </div>
               </div>
 
-              {/* COMPACT STACK BUTTON TRIGGERS */}
+              {/* INDUSTRIAL SCALE LAUNCH STACK TRIGGERS */}
               <button 
                 onClick={startBacktest}
                 disabled={!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running'}
@@ -555,15 +572,15 @@ export default function Home() {
               </button>
             </div>
 
-            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS */}
+            {/* HIGH-SCALE COORDINATE DISPLAY VISUAL MATRIX CANVASES */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
-                <span style={{ color: '#526685' }}>CORE: READY</span>
+                <span style={{ color: '#526685' }}>SYSTEM: READY</span>
               </div>
               <div style={{ flex: 1, minHeight: '200px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ color: '#526685', fontSize: '11px', padding: '10px', textAlign: 'center' }}>
-                  [AWAITING RUN CLUSTER TRIGGER COMMAND VALIDATION]
+                  [AWAITING PIPELINE EXECUTION GENERATION TRIGGER OVERLAYS]
                 </span>
                 <div style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '8px', color: '#152233' }}>NODE_GRAPH_2D</div>
               </div>
@@ -572,7 +589,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* METRICS DISPATCH TERMINAL VIEW LOG LISTS */}
+        {/* COMPONENT SUMMARY LOG METRICS DATATABLE */}
         {activeTab !== 'portfolio' && (
           <div className="animate-cascade seq-2" style={{ marginTop: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -582,7 +599,7 @@ export default function Home() {
             
             {data.length === 0 ? ( 
               <div style={{ padding: '28px', textAlign: 'center', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
-                <h3 style={{ color: '#526685', fontSize: '12px' }}>&gt;&gt; PIPELINE EMPTY: AWAITING CORE AGENT SIGNAL FEED TRANSACTION ARRAY...</h3> 
+                <h3 style={{ color: '#526685', fontSize: '12px' }}>&gt;&gt; PIPELINE EMPTY: STANDBY FOR STREAMING SYSTEM PROFILE COMPILATION INDEX...</h3> 
               </div> 
             ) : ( 
               <div style={{ overflowX: 'auto', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
@@ -624,19 +641,19 @@ export default function Home() {
                         <td style={{ padding: '10px 12px', color: row.Alpha >= 0 ? '#ffaa00' : '#ff3366', fontWeight: '700' }}>{row.Alpha?.toFixed(2)}</td> 
                         
                         <td style={{ padding: '10px 12px', color: '#ffaa00', fontWeight: '700' }}>
-                          {data[0]?.PF !== undefined 
+                          {data[0]?.PF !== undefined \
                             ? (row.PF !== undefined ? row.PF.toFixed(2) : 'N/A') 
                             : (row.AverageDD !== undefined ? `${row.AverageDD.toFixed(2)}` : 'N/A')}
                         </td> 
 
                         <td style={{ padding: '10px 12px', color: '#af40ff', fontWeight: '700' }}>
-                          {data[0]?.PF !== undefined 
+                          {data[0]?.PF !== undefined \
                             ? '' 
                             : (row.TPD_Ret !== undefined ? `${row.TPD_Ret.toFixed(1)}%` : 'N/A')}
                         </td>
 
                         <td style={{ padding: '10px 12px', color: '#af40ff', fontWeight: '700' }}>
-                          {data[0]?.PF !== undefined 
+                          {data[0]?.PF !== undefined \
                             ? '' 
                             : (row.WFE !== undefined ? `${row.WFE.toFixed(1)}%` : 'N/A')}
                         </td> 
