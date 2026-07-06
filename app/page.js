@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 // --- Safe SVG Equity Curve Renderer ---
 const Sparkline = ({ data, color }) => {
   let parsedData = [];
-  try { parsedData = typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return <span style={{color: '#5c7294', fontSize: '11px'}}>ERR_DATA</span>; }
-  if (!Array.isArray(parsedData) || parsedData.length === 0) return <span style={{color: '#5c7294', fontSize: '11px'}}>EMPTY_MAT</span>;
+  try { parsedData = typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return <span style={{color: '#526685', fontSize: '11px'}}>ERR_DATA</span>; }
+  if (!Array.isArray(parsedData) || parsedData.length === 0) return <span style={{color: '#526685', fontSize: '11px'}}>EMPTY_MAT</span>;
   
   const min = Math.min(...parsedData);
   const max = Math.max(...parsedData);
@@ -14,9 +14,9 @@ const Sparkline = ({ data, color }) => {
   const zeroY = 100 - ((0 - min) / range) * 100;
 
   return (
-    <svg viewBox="0 -5 100 110" preserveAspectRatio="none" style={{ width: '100%', minWidth: '150px', height: '38px', overflow: 'visible' }}>
-      {min < 0 && max > 0 && <line x1="0" y1={zeroY} x2="100" y2={zeroY} stroke="#1d2d44" strokeDasharray="2" strokeWidth="1" />}
-      <polyline fill="none" stroke={color} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" points={points} />
+    <svg viewBox="0 -5 100 110" preserveAspectRatio="none" style={{ width: '100%', minWidth: '140px', height: '34px', overflow: 'visible' }}>
+      {min < 0 && max > 0 && <line x1="0" y1={zeroY} x2="100" y2={zeroY} stroke="#152233" strokeDasharray="2" strokeWidth="1" />}
+      <polyline fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter" points={points} />
     </svg>
   );
 };
@@ -95,6 +95,9 @@ export default function Home() {
               cw_al: jsonCmd.cw_al !== undefined ? jsonCmd.cw_al : prev.cw_al,
               cw_tpd_ret: jsonCmd.cw_tpd_ret !== undefined ? jsonCmd.cw_tpd_ret : prev.cw_tpd_ret,
               cw_tpd: jsonCmd.cw_tpd !== undefined ? jsonCmd.cw_tpd : prev.cw_tpd,
+              oos_list: jsonCmd.oos_list || prev.oos_list,
+              hv_oos_list: jsonCmd.hv_oos_list || prev.hv_oos_list,
+              lv_oos_list: jsonCmd.lv_oos_list || prev.lv_oos_list,
               debug_csv_data: jsonCmd.debug_csv_data || []
             };
           });
@@ -154,148 +157,145 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1850px', margin: '0 auto', minHeight: '100vh' }}>
+    <div style={{ padding: '16px', maxWidth: '1720px', margin: '0 auto', minHeight: '100vh' }}>
       
-      {/* GLOBAL HUD TERMINAL BAR */}
-      <div className="animate-cascade seq-0" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '2px solid #1d2d44', backgroundColor: '#070b11', padding: '20px 24px', marginBottom: '24px' }}>
+      {/* GLOBAL TELEMETRY INTERFACE BAR */}
+      <div className="animate-cascade seq-0" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--term-border)', backgroundColor: '#070b11', padding: '12px 18px', marginBottom: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '0.5px' }}>HEXNET DASHBOARD</h1>
-            <span style={{ fontSize: '11px', padding: '3px 8px', background: '#0e1420', border: '1px solid #1d2d44', color: '#5c7294', fontWeight: 'bold' }}>VERSION//2.9.9.9.8.0</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff', letterSpacing: '0.2px' }}>HEXNET DASHBOARD</h1>
+            <span style={{ fontSize: '10px', padding: '2px 6px', background: '#0c121c', border: '1px solid var(--term-border)', color: '#526685', fontWeight: 'bold' }}>EXE_2.9.9.9.8.0</span>
           </div>
-          <div style={{ display: 'flex', gap: '18px', marginTop: '8px', fontSize: '14px' }}>
+          <div style={{ display: 'flex', gap: '14px', marginTop: '4px', fontSize: '12px' }}>
             <span style={{ color: getStatusColor(), fontWeight: '700' }}>
               ● CORE_STATUS: {(cmd.engine_status || 'OFFLINE').toUpperCase()}
-              {cmd.engine_status === 'fetching' && <span style={{ color: '#00f0ff', marginLeft: '6px' }}>[{cmd.fetch_pct || 0}%]</span>}
+              {cmd.engine_status === 'fetching' && <span style={{ color: '#00f0ff', marginLeft: '5px' }}>[{cmd.fetch_pct || 0}%]</span>}
             </span>
-            <span style={{ color: '#1d2d44', fontWeight: 'bold' }}>|</span>
-            <span style={{ color: '#5c7294', fontWeight: '500' }}>Last Synced: <span style={{ color: '#d2e0f5', fontWeight: '700' }}>{lastUpdate}</span></span>
+            <span style={{ color: '#152233' }}>|</span>
+            <span style={{ color: '#526685' }}>Last Synced: <span style={{ color: '#cbd5e1', fontWeight: '700' }}>{lastUpdate}</span></span>
           </div>
         </div>
 
-        {/* TOP HUD UTILITIES */}
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => sendCommand({ status: 'sync_requested' })} disabled={cmd.status === 'sync_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: 'transparent', color: '#ffaa00', border: '2px solid #ffaa00', padding: '10px 20px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', opacity: (cmd.status === 'sync_requested' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
-            {cmd.status === 'sync_requested' ? 'SYNCING_CLUSTER...' : '[↻ FORCE_DESKTOP_SYNC]'}
+        {/* HUD CORE ACTION SHORTCUTS */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => sendCommand({ status: 'sync_requested' })} disabled={cmd.status === 'sync_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: 'transparent', color: '#ffaa00', border: '1px solid #ffaa00', padding: '6px 14px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', opacity: (cmd.status === 'sync_requested' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
+            {cmd.status === 'sync_requested' ? 'SYNCING...' : '[↻ FORCE_DESKTOP_SYNC]'}
           </button>
-          <a href="/api/upload?download=true" download="hexnet_strategies.csv" style={{ backgroundColor: '#00f0ff', color: '#020406', padding: '10px 20px', fontSize: '12px', fontWeight: '700', textDecoration: 'none', display: 'inline-block', border: '2px solid #00f0ff' }}>
+          <a href="/api/upload?download=true" download="hexnet_strategies.csv" style={{ backgroundColor: '#00f0ff', color: '#020406', padding: '6px 14px', fontSize: '11px', fontWeight: '700', textDecoration: 'none', display: 'inline-block' }}>
             [↓ DOWNLOAD_MATRICES]
           </a>
           <button onClick={() => {
-            if (!cmd.debug_csv_data || cmd.debug_csv_data.length === 0) { alert("Diagnostic tracking array is empty."); return; }
+            if (!cmd.debug_csv_data || cmd.debug_csv_data.length === 0) { alert("Matrix data empty."); return; }
             const headers = ["Category", "Count", "Low", "25%", "Mean", "Median", "75%", "High"];
             const csvContent = [headers.join(","), ...cmd.debug_csv_data.map(row => headers.map(field => `"${row[field] !== undefined ? row[field] : ''}"`).join(","))].join("\n");
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob); link.download = "Hexnet_Debug_Stats.csv"; link.click();
-          }} style={{ backgroundColor: '#0e1420', color: '#5c7294', border: '2px solid #1d2d44', padding: '10px 20px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+          }} style={{ backgroundColor: '#0c121c', color: '#526685', border: '1px solid var(--term-border)', padding: '6px 14px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
             [DGN_STATS.LOG]
           </button>
         </div>
       </div>
 
-      {/* COMPUTATIONAL DISPATCH FEED */}
+      {/* BACKGROUND SIMULATION PROGRESS DECK */}
       {cmd.engine_status === 'running' && (
-        <div className="animate-cascade seq-0" style={{ background: '#070b11', border: '2px solid #1d2d44', borderLeft: '4px solid #00f0ff', padding: '16px', marginBottom: '24px' }}>
+        <div className="animate-cascade seq-0" style={{ background: '#070b11', border: '1px solid var(--term-border)', borderLeft: '3px solid #00f0ff', padding: '12px 16px', marginBottom: '16px' }}>
           {!cmd.stage_text?.includes('Calculating') ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                <span style={{ color: '#ffffff', fontWeight: '700' }}>&gt; {cmd.stage_text || 'PROCESSING LOGIC ARRAYS'}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px' }}>
+                <span style={{ color: '#ffffff', fontWeight: '700' }}>&gt; {cmd.stage_text || 'PROCESSING SYSTEM TASKS'}</span>
                 <span style={{ color: '#00ff66', fontWeight: '700' }}>{((cmd.progress / (cmd.total_sims || 1)) * 100).toFixed(1)}%</span>
               </div>
-              <div style={{ width: '100%', backgroundColor: '#020406', height: '6px', overflow: 'hidden', border: '1px solid #1d2d44', marginBottom: '10px' }}>
+              <div style={{ width: '100%', backgroundColor: '#020406', height: '4px', overflow: 'hidden', border: '1px solid var(--term-border)', marginBottom: '8px' }}>
                 <div style={{ width: `${Math.min(100, (cmd.progress / (cmd.total_sims || 1)) * 100)}%`, backgroundColor: '#00ff66', height: '100%' }} />
               </div>
-              <div style={{ display: 'flex', gap: '24px', fontSize: '12px', color: '#5c7294' }}>
-                <span>MUTATIONS: <strong style={{ color: '#d2e0f5' }}>{cmd.progress?.toLocaleString()}</strong> / {cmd.total_sims?.toLocaleString()}</span>
-                <span>CLUSTER_SPEED: <strong style={{ color: '#af40ff' }}>{cmd.sims_sec?.toLocaleString() || 0} exec/s</strong></span>
+              <div style={{ display: 'flex', gap: '20px', fontSize: '11px', color: '#526685' }}>
+                <span>MUTATIONS: <strong style={{ color: '#cbd5e1' }}>{cmd.progress?.toLocaleString()}</strong> / {cmd.total_sims?.toLocaleString()}</span>
+                <span>SPEED: <strong style={{ color: '#af40ff' }}>{cmd.sims_sec?.toLocaleString() || 0} exec/s</strong></span>
                 <span>ETA: <strong style={{ color: '#ffaa00' }}>{cmd.eta || '--:--:--'}</strong></span>
               </div>
             </>
           ) : (
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#00ff66' }}>
-                <span className="pulse-glow">&gt;&gt;</span> ENGINES DEPLOYED: RUNNING LIVE MULTI-THREADED MATRIX MATCH OPERATIONS...
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#00ff66' }}>
+                <span className="pulse-glow">&gt;&gt;</span> MATRIX CONFIGURED: RUNNING LIVE CLUSTER CALCULATION ROUTINES...
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* CORE WORKSPACE SYSTEM NAVIGATION TABS */}
-      <div className="animate-cascade seq-1" style={{ display: 'flex', borderBottom: '2px solid #1d2d44', marginBottom: '24px', gap: '6px' }}>
-        <button onClick={() => setActiveTab('portfolio')} style={{ padding: '14px 28px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#5c7294', border: '2px solid #1d2d44', borderBottom: activeTab === 'portfolio' ? '2px solid #070b11' : '2px solid #1d2d44', cursor: 'pointer', fontSize: '14px', fontWeight: '700', marginBottom: '-2px' }}>
+      {/* MAIN NAVIGATION WORKSPACE TABS */}
+      <div className="animate-cascade seq-1" style={{ display: 'flex', borderBottom: '1px solid var(--term-border)', marginBottom: '16px', gap: '4px' }}>
+        <button onClick={() => setActiveTab('portfolio')} style={{ padding: '10px 20px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'portfolio' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'portfolio' ? '■ ' : ''}[PORTFOLIO_PERFORMANCE]
         </button>
-        <button onClick={() => setActiveTab('generator')} style={{ padding: '14px 28px', background: activeTab === 'generator' ? '#070b11' : 'transparent', color: activeTab === 'generator' ? '#00f0ff' : '#5c7294', border: '2px solid #1d2d44', borderBottom: activeTab === 'generator' ? '2px solid #070b11' : '2px solid #1d2d44', cursor: 'pointer', fontSize: '14px', fontWeight: '700', marginBottom: '-2px' }}>
+        <button onClick={() => setActiveTab('generator')} style={{ padding: '10px 20px', background: activeTab === 'generator' ? '#070b11' : 'transparent', color: activeTab === 'generator' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'generator' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'generator' ? '■ ' : ''}[STRATEGY_GENERATOR]
         </button>
-        <button onClick={() => setActiveTab('backtester')} style={{ padding: '14px 28px', background: activeTab === 'backtester' ? '#070b11' : 'transparent', color: activeTab === 'backtester' ? '#00f0ff' : '#5c7294', border: '2px solid #1d2d44', borderBottom: activeTab === 'backtester' ? '2px solid #070b11' : '2px solid #1d2d44', cursor: 'pointer', fontSize: '14px', fontWeight: '700', marginBottom: '-2px' }}>
+        <button onClick={() => setActiveTab('backtester')} style={{ padding: '10px 20px', background: activeTab === 'backtester' ? '#070b11' : 'transparent', color: activeTab === 'backtester' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'backtester' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'backtester' ? '■ ' : ''}[LIVE_BACKTESTER]
         </button>
       </div>
 
-      {/* CENTRAL CONTROL ROOM PANEL */}
-      <div style={{ backgroundColor: '#070b11', border: '2px solid #1d2d44', padding: '24px', minHeight: '500px' }}>
+      {/* PRINCIPAL CONSOLE CONTEXT AREA */}
+      <div style={{ backgroundColor: '#070b11', border: '1px solid var(--term-border)', padding: '16px', minHeight: '450px' }}>
         
-        {/* TAB 1: PORTFOLIO MAIN WORKING PANEL */}
+        {/* TAB 1: PORTFOLIO MAIN TELEMETRY WORKSPACE */}
         {activeTab === 'portfolio' && (
           <div key="viewport-portfolio">
-            <div className="animate-cascade seq-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>NET_LIQUIDITY_VAL</div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: '#00ff66', marginTop: '6px' }}>$100,000.00</div>
-                <div style={{ fontSize: '11px', color: '#5c7294', marginTop: '6px' }}>PROP_FIRM BASE: LAYER_1</div>
+            <div className="animate-cascade seq-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>NET_LIQUIDITY_VAL</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00ff66', marginTop: '4px' }}>$100,000.00</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>PROP_FIRM ALLOCATION: L1</div>
               </div>
-              <div style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>FLOATING_MARGIN_PNL</div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: '#00f0ff', marginTop: '6px' }}>$0.00</div>
-                <div style={{ fontSize: '11px', color: '#5c7294', marginTop: '6px' }}>0 ACTIVE EXPOSURE AGENTS</div>
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>FLOATING_MARGIN_PNL</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00f0ff', marginTop: '4px' }}>$0.00</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>0 ACTIVE POSITION VECTORS</div>
               </div>
-              <div style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>MAX_DAILY_DRAWDOWN_LIMIT</div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: '#ffaa00', marginTop: '6px' }}>$5,000.00</div>
-                <div style={{ fontSize: '11px', color: '#5c7294', marginTop: '6px' }}>BREACH EXPOSURE: 100% CLEAR</div>
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>MAX_DAILY_DRAWDOWN_LIMIT</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffaa00', marginTop: '4px' }}>$5,000.00</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>BREACH EXPOSURE: LEVEL CLEAN</div>
               </div>
-              <div style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>LIVEFIRE_GATE_LINK</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#ff3366', marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="pulse-glow" style={{ fontSize: '18px' }}>■</span> DISCONNECTED_STANDBY
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>LIVEFIRE_GATE_LINK</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff3366', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="pulse-glow" style={{ fontSize: '14px' }}>■</span> DISCONNECTED_STANDBY
                 </div>
               </div>
             </div>
 
-            {/* DEDICATED PORTFOLIO HIGH-SCALE INTEGRATED CANVAS GRAPH */}
-            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '14px' }}>
+            {/* ACCOUNT CORE HIGH-DENSITY GRID CANVAS GRAPH */}
+            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[PORTFOLIO_EQUITY_FEED_REALTIME]</span>
-                <span style={{ color: '#5c7294' }}>GRID_MATRIX: RUNNING</span>
+                <span style={{ color: '#526685' }}>COORDINATES: SECURE</span>
               </div>
-              <div style={{ height: '280px', position: 'relative', border: '1px dashed #1d2d44', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(29, 45, 68, 0.2)', height: '20%' }}>
-                  <span style={{ fontSize: '11px', color: '#5c7294' }}>$105,000</span><span style={{ fontSize: '11px', color: '#1d2d44' }}>---------------------------------------------------------------------------------------------------------------------------------</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(29, 45, 68, 0.2)', height: '20%' }}>
-                  <span style={{ fontSize: '11px', color: '#5c7294' }}>$100,000</span><span style={{ fontSize: '11px', color: '#1d2d44' }}>---------------------------------------------------------------------------------------------------------------------------------</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(29, 45, 68, 0.2)', height: '20%' }}>
-                  <span style={{ fontSize: '11px', color: '#5c7294' }}>$95,000</span><span style={{ fontSize: '11px', color: '#1d2d44' }}>---------------------------------------------------------------------------------------------------------------------------------</span>
-                </div>
+              <div style={{ height: '220px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '8px' }}>
+                {[105000, 100000, 95000].map((val) => (
+                  <div key={val} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(21, 34, 51, 0.15)', height: '25%' }}>
+                    <span style={{ fontSize: '10px', color: '#526685' }}>${val.toLocaleString()}</span>
+                    <span style={{ fontSize: '10px', color: '#101a26' }}>--------------------------------------------------------------------------------------------------</span>
+                  </div>
+                ))}
                 <div style={{ position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ fontSize: '13px', color: '#5c7294', background: '#020406', padding: '8px 16px', border: '2px solid #1d2d44' }}>
-                    &gt;&gt; LOGISTICAL PIPELINE COLD — AWAITING FIRST LIVE TRADE PLATFORM EXECUTION INDEX
+                  <div style={{ fontSize: '12px', color: '#526685', background: '#020406', padding: '6px 12px', border: '1px solid var(--term-border)' }}>
+                    &gt; LOGISTICAL PIPELINE COLD — STANDBY FOR PLATFORM ALLOCATION KEY ARRAY
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* LIVE CONSOLE LOG INPUT/OUTPUT STREAM */}
-            <div className="animate-cascade seq-2" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px' }}>
-              <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: '700', marginBottom: '12px' }}>LIVEFIRE_LOG_STREAM (STDOUT)</div>
-              <div style={{ fontSize: '13px', color: '#5c7294', lineHeight: '1.6', background: '#04070a', padding: '14px', border: '1px solid #162235', height: '140px', overflowY: 'auto' }}>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01:12] <span style={{ color: '#00f0ff' }}>[CORE]</span> Hexnet architecture execution matrix linked successfully.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01:13] <span style={{ color: '#00f0ff' }}>[REDIS]</span> Command state synchronization online.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01:15] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Prop server allocation array running on safe standby configurations.</div>
+            {/* STDOUT CORE REALTIME LOG STREAM */}
+            <div className="animate-cascade seq-2" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+              <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '10px' }}>LIVEFIRE_LOG_STREAM (STDOUT)</div>
+              <div style={{ fontSize: '12px', color: '#526685', lineHeight: '1.5', background: '#04070a', padding: '10px', border: '1px solid var(--term-border-muted)', height: '110px', overflowY: 'auto' }}>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> System architecture compiled.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[KV]</span> Command synchronization loop online.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Prop API broker waiting in clean standby setup parameters.</div>
                 <div><span className="pulse-glow" style={{ color: '#00ff66' }}>■</span></div>
               </div>
             </div>
@@ -305,68 +305,68 @@ export default function Home() {
         {/* TAB 2: STRATEGY GENERATOR */}
         {activeTab === 'generator' && (
           <div key="viewport-generator">
-            {/* DATA ENGINE ROUTING GRID */}
-            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* DATA ENGINE ROUTING INTERFACE SECTION */}
+            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#00f0ff', fontSize: '14px', fontWeight: '700' }}>[DATA_ROUTING_ENGINE]</h3>
-                  <p style={{ margin: '4px 0 0 0', color: '#5c7294', fontSize: '12px' }}>
-                    BUFFER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOWS: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
+                  <h3 style={{ margin: 0, color: '#00f0ff', fontSize: '13px', fontWeight: '700' }}>[DATA_ROUTING_ENGINE]</h3>
+                  <p style={{ margin: '2px 0 0 0', color: '#526685', fontSize: '11px' }}>
+                    TICKER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOW: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>TICKER</label>
-                    <input type="text" value={cmd.fetch_ticker} onChange={(e) => sendCommand({ fetch_ticker: e.target.value.toUpperCase() })} style={{ width: '90px', padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>TICKER</label>
+                    <input type="text" value={cmd.fetch_ticker} onChange={(e) => sendCommand({ fetch_ticker: e.target.value.toUpperCase() })} style={{ width: '80px', padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>INTERVAL</label>
-                    <select value={cmd.fetch_interval} onChange={(e) => sendCommand({ fetch_interval: e.target.value })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>INTERVAL</label>
+                    <select value={cmd.fetch_interval} onChange={(e) => sendCommand({ fetch_interval: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }}>
                       <option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>START_DATE</label>
-                    <input type="date" value={cmd.fetch_start} onChange={(e) => sendCommand({ fetch_start: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>START_DATE</label>
+                    <input type="date" value={cmd.fetch_start} onChange={(e) => sendCommand({ fetch_start: e.target.value })} style={{ padding: '4px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>END_DATE</label>
-                    <input type="date" value={cmd.fetch_end} onChange={(e) => sendCommand({ fetch_end: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>END_DATE</label>
+                    <input type="date" value={cmd.fetch_end} onChange={(e) => sendCommand({ fetch_end: e.target.value })} style={{ padding: '4px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                   </div>
-                  <button onClick={() => sendCommand({ status: 'fetch_requested' })} disabled={cmd.status === 'fetch_requested' || cmd.engine_status === 'fetching' || cmd.engine_status === 'offline'} style={{ background: '#00f0ff', color: '#020406', border: 'none', padding: '0 20px', height: '36px', fontWeight: '700', fontSize: '12px', marginTop: '18px', cursor: 'pointer', opacity: (cmd.status === 'fetch_requested' || cmd.engine_status === 'fetching' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
+                  <button onClick={() => sendCommand({ status: 'fetch_requested' })} disabled={cmd.status === 'fetch_requested' || cmd.engine_status === 'fetching' || cmd.engine_status === 'offline'} style={{ background: '#00f0ff', color: '#020406', border: 'none', padding: '0 16px', height: '30px', fontWeight: '700', fontSize: '11px', cursor: 'pointer', opacity: (cmd.status === 'fetch_requested' || cmd.engine_status === 'fetching' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
                     [ROUTING FETCH]
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* GENERATOR CONFIGURATION ENGINE SPACE */}
-            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', borderBottom: '2px solid #1d2d44', paddingBottom: '16px', marginBottom: '16px' }}>
-                <select value={cmd.mode} onChange={(e) => sendCommand({ mode: e.target.value })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44', width: '250px' }}>
+            {/* GENERATOR SYSTEM WORKSPACE CORE SETTINGS */}
+            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid var(--term-border)', paddingBottom: '12px', marginBottom: '12px' }}>
+                <select value={cmd.mode} onChange={(e) => sendCommand({ mode: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '220px' }}>
                   <option>Generate Random Strategies</option>
                   <option>Optimize Existing Strategy</option>
                   <option>Generate Advanced Optimal Strategy</option>
                 </select>
                 
                 {cmd.mode === 'Optimize Existing Strategy' && (
-                  <select value={cmd.strategy} onChange={(e) => sendCommand({ strategy: e.target.value })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44', width: '180px' }}>
+                  <select value={cmd.strategy} onChange={(e) => sendCommand({ strategy: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '160px' }}>
                     {(cmd.available_strats || []).map((s, i) => <option key={i} value={s}>{s}</option>)}
                   </select>
                 )}
                 
-                {/* WIDENED SIMS BOX FOR SEAMLESS LARGE VALUE READING */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>SIMS:</span>
-                  <input type="number" value={cmd.sims} onChange={(e) => sendCommand({ sims: parseInt(e.target.value) })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44', width: '150px' }} />
+                {/* WIDENED SIMS INPUT PREVENTS LARGE COMPILATION CLIPPING */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>SIMS:</span>
+                  <input type="number" value={cmd.sims} onChange={(e) => sendCommand({ sims: parseInt(e.target.value) })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '140px' }} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>GENS:</span>
-                  <input type="number" value={cmd.gen_count || 10} onChange={(e) => sendCommand({ gen_count: parseInt(e.target.value) })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44', width: '70px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>GENS:</span>
+                  <input type="number" value={cmd.gen_count || 10} onChange={(e) => sendCommand({ gen_count: parseInt(e.target.value) })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '65px' }} />
                 </div>
                 
-                <select value={cmd.sort} onChange={(e) => sendCommand({ sort: e.target.value })} style={{ padding: '6px', background: '#070b11', color: '#ffffff', border: '2px solid #1d2d44', width: '260px' }}>
+                <select value={cmd.sort} onChange={(e) => sendCommand({ sort: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '240px' }}>
                   <option>Composite Score (Best Overall)</option>
                   <option>Walk-Forward Efficiency (WFE)</option>
                   <option>Strategy Sharpe</option>
@@ -376,103 +376,124 @@ export default function Home() {
                   <option>Custom Score</option>
                 </select>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginLeft: 'auto' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffaa00', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={cmd.adv_enabled} onChange={(e) => sendCommand({ adv_enabled: e.target.checked })} style={{ accentColor: '#ffaa00', width: '16px', height: '16px' }} /> ADV_FILTERS
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ffaa00', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={cmd.adv_enabled} onChange={(e) => sendCommand({ adv_enabled: e.target.checked })} style={{ accentColor: '#ffaa00' }} /> FILTERS
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#af40ff', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={cmd.use_genetic} onChange={(e) => sendCommand({ use_genetic: e.target.checked })} style={{ accentColor: '#af40ff', width: '16px', height: '16px' }} /> 🧬GENETIC
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#af40ff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={cmd.use_genetic} onChange={(e) => sendCommand({ use_genetic: e.target.checked })} style={{ accentColor: '#af40ff' }} /> 🧬GENETIC
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#00ff66', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={cmd.auto} onChange={(e) => sendCommand({ auto: e.target.checked })} style={{ accentColor: '#00ff66', width: '16px', height: '16px' }} /> LOOP
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00ff66', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={cmd.auto} onChange={(e) => sendCommand({ auto: e.target.checked })} style={{ accentColor: '#00ff66' }} /> LOOP
                   </label>
                   
-                  <button onClick={() => sendCommand({ status: 'start_requested' })} disabled={cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: '#00ff66', color: '#020406', border: 'none', padding: '10px 20px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', opacity: (cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline') ? 0.4 : 1 }}>
+                  <button onClick={() => sendCommand({ status: 'start_requested' })} disabled={cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: '#00ff66', color: '#020406', border: 'none', padding: '8px 16px', fontWeight: '700', fontSize: '11px', cursor: 'pointer', opacity: (cmd.engine_status === 'running' || cmd.status === 'start_requested' || cmd.engine_status === 'offline') ? 0.4 : 1 }}>
                     [LAUNCH]
                   </button>
-                  <button onClick={() => sendCommand({ status: 'stop_requested' })} disabled={cmd.engine_status === 'idle' || cmd.engine_status === 'offline' || cmd.status === 'stop_requested'} style={{ backgroundColor: '#ff3366', color: '#ffffff', border: 'none', padding: '10px 20px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', opacity: (cmd.engine_status === 'idle' || cmd.engine_status === 'offline' || cmd.status === 'stop_requested') ? 0.4 : 1 }}>
+                  <button onClick={() => sendCommand({ status: 'stop_requested' })} disabled={cmd.engine_status === 'idle' || cmd.engine_status === 'offline' || cmd.status === 'stop_requested'} style={{ backgroundColor: '#ff3366', color: '#ffffff', border: 'none', padding: '8px 16px', fontWeight: '700', fontSize: '11px', cursor: 'pointer', opacity: (cmd.engine_status === 'idle' || cmd.engine_status === 'offline' || cmd.status === 'stop_requested') ? 0.4 : 1 }}>
                     [ABORT]
                   </button>
                 </div>
               </div>
 
-              {/* DYNAMIC FITNESS BIAS TUNER */}
+              {/* DYNAMIC METRIC FITNESS BIAS INPUT LAYER */}
               {cmd.sort === 'Custom Score' && (
-                <div className="animate-cascade seq-2" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', padding: '14px', background: '#070b11', border: '2px dashed #00f0ff', marginBottom: '16px' }}>
+                <div className="animate-cascade seq-2" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px', background: '#070b11', border: '1px dashed #00f0ff', marginBottom: '12px' }}>
                   {[
                     { label: 'WIN_RATE', key: 'cw_wr' }, { label: 'NET_PNL', key: 'cw_pnl' }, { label: 'EXP_VAL', key: 'cw_ev' },
                     { label: 'SHARPE', key: 'cw_sharpe' }, { label: 'ALPHA', key: 'cw_alpha' }, { label: 'DRAWDOWN', key: 'cw_add' },
                     { label: 'AVG_LOSS', key: 'cw_al' }, { label: 'TPD', key: 'cw_tpd' }, { label: 'TPD_RET', key: 'cw_tpd_ret' }
                   ].map((field) => (
-                    <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>{field.label}</label>
-                      <input type="number" step="0.1" min="0" max="1" value={cmd[field.key]} onChange={(e) => sendCommand({ [field.key]: parseFloat(e.target.value) })} style={{ width: '80px', padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                    <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <label style={{ fontSize: '9px', color: '#526685' }}>{field.label}</label>
+                      <input type="number" step="0.1" min="0" max="1" value={cmd[field.key]} onChange={(e) => sendCommand({ [field.key]: parseFloat(e.target.value) })} style={{ width: '70px', padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* BOUNDING EVALUATION WINDOW SELECTION GRID */}
+              {/* RESTORED MODULAR TIMEFRAME APPENDFILE FIELDS FOR OOS EVALUATIONS */}
               <div className="animate-cascade seq-3">
                 {cmd.mode === 'Generate Advanced Optimal Strategy' ? (
-                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                    <div style={{ border: '2px solid #ff3366', padding: '14px', background: '#070b11', flex: 1, minWidth: '320px' }}>
-                      <label style={{ fontSize: '11px', color: '#ff3366', fontWeight: '700', display: 'block', marginBottom: '6px' }}>HIGH_VOL IN-SAMPLE WINDOW</label>
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                        <input type="date" value={cmd.hv_start} onChange={(e) => sendCommand({ hv_start: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44', flex: 1 }} />
-                        <input type="date" value={cmd.hv_end} onChange={(e) => sendCommand({ hv_end: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44', flex: 1 }} />
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ border: '1px solid rgba(255,51,102,0.3)', padding: '12px', background: '#070b11', flex: 1, minWidth: '310px' }}>
+                      <label style={{ fontSize: '10px', color: '#ff3366', fontWeight: '700', display: 'block', marginBottom: '4px' }}>HIGH_VOL IN-SAMPLE WINDOW</label>
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                        <input type="date" value={cmd.hv_start} onChange={(e) => sendCommand({ hv_start: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                        <input type="date" value={cmd.hv_end} onChange={(e) => sendCommand({ hv_end: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                       </div>
+                      <label style={{ fontSize: '10px', color: '#ff3366', fontWeight: '700', display: 'block', marginBottom: '4px' }}>HIGH_VOL OUT-OF-SAMPLE TARGET SLICES</label>
+                      {(cmd.hv_oos_list || [{start: '', end: ''}]).map((oos, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                          <input type="date" value={oos.start} onChange={(e) => { const l = [...cmd.hv_oos_list]; l[idx].start = e.target.value; sendCommand({ hv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                          <input type="date" value={oos.end} onChange={(e) => { const l = [...cmd.hv_oos_list]; l[idx].end = e.target.value; sendCommand({ hv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                          {idx > 0 && <button onClick={() => sendCommand({ hv_oos_list: cmd.hv_oos_list.filter((_, i) => i !== idx) })} style={{ background: '#ff3366', color: '#ffffff', border: 'none', padding: '0 8px', cursor: 'pointer', fontSize: '11px' }}>X</button>}
+                        </div>
+                      ))}
+                      <button onClick={() => sendCommand({ hv_oos_list: [...(cmd.hv_oos_list || []), {start: '', end: ''}] })} style={{ background: 'transparent', color: '#ff3366', border: '1px dashed #ff3366', padding: '4px', fontSize: '10px', fontWeight: '700', width: '100%', marginTop: '4px', cursor: 'pointer' }}>+ ADD_HV_WINDOW_SLICE</button>
                     </div>
-                    <div style={{ border: '2px solid #00ff66', padding: '14px', background: '#070b11', flex: 1, minWidth: '320px' }}>
-                      <label style={{ fontSize: '11px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '6px' }}>LOW_VOL IN-SAMPLE WINDOW</label>
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                        <input type="date" value={cmd.lv_start} onChange={(e) => sendCommand({ lv_start: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44', flex: 1 }} />
-                        <input type="date" value={cmd.lv_end} onChange={(e) => sendCommand({ lv_end: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44', flex: 1 }} />
+
+                    <div style={{ border: '1px solid rgba(0,255,102,0.3)', padding: '12px', background: '#070b11', flex: 1, minWidth: '310px' }}>
+                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>LOW_VOL IN-SAMPLE WINDOW</label>
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                        <input type="date" value={cmd.lv_start} onChange={(e) => sendCommand({ lv_start: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                        <input type="date" value={cmd.lv_end} onChange={(e) => sendCommand({ lv_end: e.target.value })} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
                       </div>
+                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>LOW_VOL OUT-OF-SAMPLE TARGET SLICES</label>
+                      {(cmd.lv_oos_list || [{start: '', end: ''}]).map((oos, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                          <input type="date" value={oos.start} onChange={(e) => { const l = [...cmd.lv_oos_list]; l[idx].start = e.target.value; sendCommand({ lv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                          <input type="date" value={oos.end} onChange={(e) => { const l = [...cmd.lv_oos_list]; l[idx].end = e.target.value; sendCommand({ lv_oos_list: l }); }} style={{ padding: '4px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)', fontSize: '11px', flex: 1 }} />
+                          {idx > 0 && <button onClick={() => sendCommand({ lv_oos_list: cmd.lv_oos_list.filter((_, i) => i !== idx) })} style={{ background: '#ff3366', color: '#ffffff', border: 'none', padding: '0 8px', cursor: 'pointer', fontSize: '11px' }}>X</button>}
+                        </div>
+                      ))}
+                      <button onClick={() => sendCommand({ lv_oos_list: [...(cmd.lv_oos_list || []), {start: '', end: ''}] })} style={{ background: 'transparent', color: '#00ff66', border: '1px dashed #00ff66', padding: '4px', fontSize: '10px', fontWeight: '700', width: '100%', marginTop: '4px', cursor: 'pointer' }}>+ ADD_LV_WINDOW_SLICE</button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', gap: '16px', padding: '16px', background: '#070b11', border: '2px solid #1d2d44' }}>
+                  <div style={{ display: 'flex', gap: '14px', padding: '12px', background: '#070b11', border: '1px solid var(--term-border)' }}>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '6px' }}>IN-SAMPLE VALIDATION RANGE</label>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <input type="date" value={cmd.is_start} onChange={(e) => sendCommand({ is_start: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44' }} />
-                        <input type="date" value={cmd.is_end} onChange={(e) => sendCommand({ is_end: e.target.value })} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                      <label style={{ fontSize: '10px', color: '#00ff66', fontWeight: '700', display: 'block', marginBottom: '4px' }}>IN-SAMPLE STAGE BOUNDS</label>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <input type="date" value={cmd.is_start} onChange={(e) => sendCommand({ is_start: e.target.value })} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
+                        <input type="date" value={cmd.is_end} onChange={(e) => sendCommand({ is_end: e.target.value })} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                       </div>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '11px', color: '#af40ff', fontWeight: '700', display: 'block', marginBottom: '6px' }}>OUT-OF-SAMPLE BOUND MATRIX OVERLAYS</label>
+                      <label style={{ fontSize: '10px', color: '#af40ff', fontWeight: '700', display: 'block', marginBottom: '4px' }}>OUT-OF-SAMPLE BOUND SYSTEM TRACKERS</label>
                       {(cmd.oos_list || [{start: '', end: ''}]).map((oos, idx) => (
-                        <div key={idx} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                          <input type="date" value={oos.start} onChange={(e) => { const newList = [...cmd.oos_list]; newList[idx].start = e.target.value; sendCommand({ oos_list: newList }); }} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44' }} />
-                          <input type="date" value={oos.end} onChange={(e) => { const newList = [...cmd.oos_list]; newList[idx].end = e.target.value; sendCommand({ oos_list: newList }); }} style={{ padding: '6px', background: '#020406', color: '#ffffff', border: '2px solid #1d2d44' }} />
+                        <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                          <input type="date" value={oos.start} onChange={(e) => { const newList = [...cmd.oos_list]; newList[idx].start = e.target.value; sendCommand({ oos_list: newList }); }} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
+                          <input type="date" value={oos.end} onChange={(e) => { const newList = [...cmd.oos_list]; newList[idx].end = e.target.value; sendCommand({ oos_list: newList }); }} style={{ padding: '5px', background: '#020406', color: '#ffffff', border: '1px solid var(--term-border)' }} />
+                          {idx > 0 && <button onClick={() => sendCommand({ oos_list: cmd.oos_list.filter((_, i) => i !== idx) })} style={{ background: '#ff3366', color: '#ffffff', border: 'none', padding: '0 8px', cursor: 'pointer', fontSize: '11px' }}>X</button>}
                         </div>
                       ))}
+                      <button onClick={() => sendCommand({ oos_list: [...(cmd.oos_list || []), {start: '', end: ''}] })} style={{ background: 'transparent', color: '#af40ff', border: '1px dashed #af40ff', padding: '4px 10px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', marginTop: '2px' }}>+ ADD_OOS_WINDOW_TRACKER</button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* FULL EXTENDED ADVANCED PARAMETER FILTERS STACK CONTAINER */}
+              {/* STREAMLINED LOW-PROFILE PARAMETER FILTER FIELD GRID */}
               {cmd.adv_enabled && (
-                <div className="animate-cascade seq-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', padding: '16px', background: '#070b11', border: '2px solid #ffaa00', marginTop: '16px' }}>
+                <div className="animate-cascade seq-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', padding: '10px', background: '#04070a', border: '1px dashed rgba(255,170,0,0.4)', marginTop: '12px' }}>
                   {[
-                    { label: 'SMA MIN PARAM', key: 'sma_min' }, { label: 'SMA MAX PARAM', key: 'sma_max' },
-                    { label: 'TAKE_PROFIT MIN', key: 'tp_min' }, { label: 'TAKE_PROFIT MAX', key: 'tp_max' },
-                    { label: 'STOP_LOSS MIN', key: 'sl_min' }, { label: 'STOP_LOSS MAX', key: 'sl_max' },
-                    { label: 'LOGIC GATES MAX', key: 'logic_max' }, { label: 'TARGET IDEAL TPD', key: 'ideal_tpd' },
-                    { label: 'CRITICAL MIN TPD', key: 'min_tpd' }, { label: 'IDEAL TPD RET%', key: 'ideal_tpd_ret' },
-                    { label: 'MIN TPD RETENTION%', key: 'min_tpd_ret' }, { label: 'TARGET IDEAL EV', key: 'ideal_ev' },
-                    { label: 'CRITICAL MIN EV', key: 'min_ev' }, { label: 'TARGET IDEAL ADD', key: 'ideal_add' },
-                    { label: 'ABSOLUTE MAX ADD', key: 'max_add' }, { label: 'IDEAL AVG LOSS', key: 'ideal_al' },
-                    { label: 'ABSOLUTE MAX LOSS', key: 'max_al' }, { label: 'IDEAL TARGET WR%', key: 'ideal_wr' },
-                    { label: 'CRITICAL MIN WR%', key: 'min_wr' }, { label: 'TARGET IDEAL SHARPE', key: 'ideal_sharpe' },
-                    { label: 'CRITICAL MIN SHARPE', key: 'min_sharpe' }, { label: 'CRITICAL MIN PNL', key: 'min_pnl' },
-                    { label: 'CRITICAL MIN WFE%', key: 'min_wfe' }
+                    { label: 'SMA MIN', key: 'sma_min' }, { label: 'SMA MAX', key: 'sma_max' },
+                    { label: 'TP MIN', key: 'tp_min' }, { label: 'TP MAX', key: 'tp_max' },
+                    { label: 'SL MIN', key: 'sl_min' }, { label: 'SL MAX', key: 'sl_max' },
+                    { label: 'GATES MAX', key: 'logic_max' }, { label: 'IDEAL TPD', key: 'ideal_tpd' },
+                    { label: 'MIN TPD', key: 'min_tpd' }, { label: 'IDEAL TPD RET%', key: 'ideal_tpd_ret' },
+                    { label: 'MIN TPD RET%', key: 'min_tpd_ret' }, { label: 'IDEAL EV', key: 'ideal_ev' },
+                    { label: 'MIN EV', key: 'min_ev' }, { label: 'IDEAL ADD', key: 'ideal_add' },
+                    { label: 'MAX ADD', key: 'max_add' }, { label: 'IDEAL LOSS', key: 'ideal_al' },
+                    { label: 'MAX LOSS', key: 'max_al' }, { label: 'IDEAL WR%', key: 'ideal_wr' },
+                    { label: 'MIN WR%', key: 'min_wr' }, { label: 'IDEAL SHARPE', key: 'ideal_sharpe' },
+                    { label: 'MIN SHARPE', key: 'min_sharpe' }, { label: 'MIN PNL', key: 'min_pnl' },
+                    { label: 'MIN WFE%', key: 'min_wfe' }
                   ].map((f) => (
-                    <div key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#020406', padding: '8px', border: '1px solid #1d2d44' }}>
-                      <label style={{ fontSize: '10px', color: '#5c7294', fontWeight: '700' }}>{f.label}</label>
-                      <input type="number" step="0.1" value={cmd[f.key]} onChange={(e) => sendCommand({ [f.key]: parseFloat(e.target.value) })} style={{ width: '100%', padding: '6px', background: '#070b11', color: '#ffffff', border: '1px solid #1d2d44', height: '34px' }} />
+                    <div key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: '#020406', padding: '4px 6px', border: '1px solid var(--term-border-muted)' }}>
+                      <label style={{ fontSize: '9px', color: '#526685', fontWeight: 'bold' }}>{f.label}</label>
+                      <input type="number" step="0.1" value={cmd[f.key]} onChange={(e) => sendCommand({ [f.key]: parseFloat(e.target.value) })} style={{ width: '100%', padding: '3px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', height: '26px', fontSize: '12px' }} />
                     </div>
                   ))}
                 </div>
@@ -483,16 +504,16 @@ export default function Home() {
 
         {/* TAB 3: LIVE PERFORMANCE BACKTESTER */}
         {activeTab === 'backtester' && (
-          <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
+          <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
             
-            {/* LARGE ASSIGNMENT SELECTOR BLOCK */}
-            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            {/* COMPACT MATRIX ASSIGNMENT BLOCK */}
+            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
-                <h2 style={{ margin: '0 0 6px 0', color: '#ffffff', fontSize: '14px', fontWeight: '700' }}>[STRATEGY_VECTOR_SELECTION_POOL]</h2>
-                <p style={{ color: '#5c7294', marginBottom: '16px', fontSize: '12px' }}>Highlight and assign synced system profiles from the desktop core array to process across the simulation framework.</p>
+                <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
+                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Highlight dynamic node matrices to run historical verification across execution networks.</p>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
-                  <label style={{ fontSize: '11px', color: '#5c7294', fontWeight: '700' }}>ACTIVE COMPILATION TARGETS (CTRL/CMD CLICK TO MULTI-SELECT)</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
+                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT POOL VECTOR</label>
                   <select 
                     multiple
                     value={cmd.active_strats || []}
@@ -504,123 +525,123 @@ export default function Home() {
                       }
                       sendCommand({ active_strats: values });
                     }}
-                    style={{ width: '100%', height: '220px', background: '#070b11', color: '#00f0ff', border: '2px solid #1d2d44', padding: '10px', fontSize: '13px', lineHeight: '1.6' }}
+                    style={{ width: '100%', height: '160px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px', fontSize: '12px', lineHeight: '1.5' }}
                   >
                     {cmd.available_strats && cmd.available_strats.length > 0 ? (
                       cmd.available_strats.map((strat, i) => (
-                        <option key={i} value={strat} style={{ padding: '6px', background: '#070b11' }}>
-                          {cmd.active_strats?.includes(strat) ? '► SYSTEM::' : '  LOGIC::'}{strat}
+                        <option key={i} value={strat} style={{ padding: '4px', background: '#070b11' }}>
+                          {cmd.active_strats?.includes(strat) ? '► VEC::' : '  MAT::'}{strat}
                         </option>
                       ))
                     ) : (
-                      <option disabled style={{ color: '#5c7294' }}>AWAITING PIPELINE SIGNAL GENERATION ENTRIES...</option>
+                      <option disabled style={{ color: '#526685' }}>AWAITING PIPELINE LOG ENTRIES SOURCE OVERFLOW...</option>
                     )}
                   </select>
                 </div>
               </div>
 
-              {/* INDUSTRIAL SCALE SECTOR LAUNCH TRIGGERS */}
+              {/* COMPACT STACK BUTTON TRIGGERS */}
               <button 
                 onClick={startBacktest}
                 disabled={!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running'}
                 style={{ 
-                  padding: '12px 24px', fontSize: '13px',
-                  backgroundColor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#0e1420' : '#00ff66', 
-                  color: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#5c7294' : '#020406', 
+                  padding: '8px 16px', fontSize: '12px',
+                  backgroundColor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#0c121c' : '#00ff66', 
+                  color: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#526685' : '#020406', 
                   border: 'none', cursor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? 'not-allowed' : 'pointer', fontWeight: '700', alignSelf: 'flex-start', width: 'auto'
                 }}
               >
-                {cmd.engine_status === 'running' ? 'CLUSTER PROCESSING...' : '[EXECUTE STACK SIMULATION MATCH]'}
+                {cmd.engine_status === 'running' ? 'CLUSTER OCCUPIED...' : '[RUN BACKTEST MATCH]'}
               </button>
             </div>
 
-            {/* DEDICATED INDUSTRIAL DIAGNOSTIC BACKTEST CANVAS GRAPH PANEL */}
-            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '2px solid #1d2d44', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
+            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS */}
+            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
-                <span style={{ color: '#5c7294' }}>SYSTEM_CORE: STANDBY</span>
+                <span style={{ color: '#526685' }}>CORE: READY</span>
               </div>
-              <div style={{ flex: 1, minHeight: '260px', position: 'relative', border: '1px dashed #1d2d44', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: '#5c7294', fontSize: '12px', padding: '16px', textAlign: 'center' }}>
-                  [AWAITING SYSTEM COMPILATION GENERATION OVERLAYS]
+              <div style={{ flex: 1, minHeight: '200px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#526685', fontSize: '11px', padding: '10px', textAlign: 'center' }}>
+                  [AWAITING RUN CLUSTER TRIGGER COMMAND VALIDATION]
                 </span>
-                <div style={{ position: 'absolute', top: '6px', right: '8px', fontSize: '9px', color: '#1d2d44' }}>ENGINE_GRID_V2</div>
+                <div style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '8px', color: '#152233' }}>NODE_GRAPH_2D</div>
               </div>
             </div>
 
           </div>
         )}
 
-        {/* METRICS LOGS LOGISTICAL DISPATCH DATA TABLE */}
+        {/* METRICS DISPATCH TERMINAL VIEW LOG LISTS */}
         {activeTab !== 'portfolio' && (
-          <div className="animate-cascade seq-2" style={{ marginTop: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '12px', color: '#5c7294', fontWeight: '700' }}>[GENERATED_STRATEGY_TELEMETRY_LOG]</span>
-              <span style={{ fontSize: '10px', color: '#1d2d44', fontWeight: 'bold' }}>LOG_ROWS_LIMIT_260</span>
+          <div className="animate-cascade seq-2" style={{ marginTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '11px', color: '#526685', fontWeight: '700' }}>[GENERATED_STRATEGY_TELEMETRY_LOG]</span>
+              <span style={{ fontSize: '10px', color: '#152233', fontWeight: 'bold' }}>MAX_LOG_ENTRIES_260</span>
             </div>
             
             {data.length === 0 ? ( 
-              <div style={{ padding: '36px', textAlign: 'center', backgroundColor: '#020406', border: '2px solid #1d2d44' }}> 
-                <h3 style={{ color: '#5c7294', fontSize: '13px' }}>&gt;&gt; PIPELINE EMPTY: STANDBY FOR TRANSMISSION FLOW INTERFACE SOURCE ARRAY...</h3> 
+              <div style={{ padding: '28px', textAlign: 'center', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
+                <h3 style={{ color: '#526685', fontSize: '12px' }}>&gt;&gt; PIPELINE EMPTY: AWAITING CORE AGENT SIGNAL FEED TRANSACTION ARRAY...</h3> 
               </div> 
             ) : ( 
-              <div style={{ overflowX: 'auto', backgroundColor: '#020406', border: '2px solid #1d2d44' }}> 
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '13px' }}> 
+              <div style={{ overflowX: 'auto', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '12px' }}> 
                   <thead> 
-                    <tr style={{ backgroundColor: '#0e1420', borderBottom: '2px solid #1d2d44', fontSize: '11px', color: '#5c7294' }}> 
-                      <th style={{ padding: '12px 16px' }}>{data[0]?.PF !== undefined ? 'IDENT_STRAT' : 'RANK_IDX'}</th> 
-                      {data[0]?.ChartData !== undefined && <th style={{ padding: '12px 16px', width: '180px' }}>EQUITY_CANVAS</th>}
-                      <th style={{ padding: '12px 16px' }}>SHARPE</th> 
-                      <th style={{ padding: '12px 16px' }}>WIN_RATE</th> 
-                      <th style={{ padding: '12px 16px' }}>TRADES</th> 
-                      <th style={{ padding: '12px 16px' }}>NET_PNL</th> 
-                      <th style={{ padding: '12px 16px' }}>EXPECTED_V</th> 
-                      <th style={{ padding: '12px 16px', color: '#ffaa00' }}>ALPHA</th> 
-                      <th style={{ padding: '12px 16px', color: '#ffaa00' }}>{data[0]?.PF !== undefined ? 'PROFIT_FACTOR' : 'ADD_PTS'}</th> 
-                      <th style={{ padding: '12px 16px', color: '#af40ff' }}>{data[0]?.PF !== undefined ? '' : 'TPD_RET'}</th> 
-                      <th style={{ padding: '12px 16px', color: '#af40ff' }}>{data[0]?.PF !== undefined ? '' : 'WFE'}</th> 
-                      <th style={{ padding: '12px 16px', color: '#ffffff' }}>EVAL</th> 
+                    <tr style={{ backgroundColor: '#0c121c', borderBottom: '1px solid var(--term-border)', fontSize: '10px', color: '#526685' }}> 
+                      <th style={{ padding: '10px 12px' }}>{data[0]?.PF !== undefined ? 'IDENT_STRAT' : 'RANK_IDX'}</th> 
+                      {data[0]?.ChartData !== undefined && <th style={{ padding: '10px 12px', width: '160px' }}>EQUITY_CANVAS</th>}
+                      <th style={{ padding: '10px 12px' }}>SHARPE</th> 
+                      <th style={{ padding: '10px 12px' }}>WIN_RATE</th> 
+                      <th style={{ padding: '10px 12px' }}>TRADES</th> 
+                      <th style={{ padding: '10px 12px' }}>NET_PNL</th> 
+                      <th style={{ padding: '10px 12px' }}>EXPECTED_V</th> 
+                      <th style={{ padding: '10px 12px', color: '#ffaa00' }}>ALPHA</th> 
+                      <th style={{ padding: '10px 12px', color: '#ffaa00' }}>{data[0]?.PF !== undefined ? 'PROFIT_FACTOR' : 'ADD_PTS'}</th> 
+                      <th style={{ padding: '10px 12px', color: '#af40ff' }}>{data[0]?.PF !== undefined ? '' : 'TPD_RET'}</th> 
+                      <th style={{ padding: '10px 12px', color: '#af40ff' }}>{data[0]?.PF !== undefined ? '' : 'WFE'}</th> 
+                      <th style={{ padding: '10px 12px', color: '#ffffff' }}>EVAL</th> 
                     </tr> 
                   </thead> 
                   <tbody> 
                     {data.slice(0, 260).map((row, i) => ( 
-                      <tr key={i} style={{ borderBottom: '1px solid #0e1420', transition: 'background-color 0.05s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0e1420'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}> 
-                        <td style={{ padding: '12px 16px', fontWeight: '700', color: '#ffffff' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid #0c121c', transition: 'background-color 0.05s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0c121c'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}> 
+                        <td style={{ padding: '10px 12px', fontWeight: '700', color: '#ffffff' }}>
                           {row.Name ? row.Name : `#${String(i + 1).padStart(3, '0')}`}
                         </td> 
                         
                         {data[0]?.ChartData !== undefined && (
-                          <td style={{ padding: '4px 16px', verticalAlign: 'middle' }}>
+                          <td style={{ padding: '2px 12px', verticalAlign: 'middle' }}>
                             <Sparkline data={row.ChartData} color={row.PnL >= 0 ? '#00ff66' : '#ff3366'} />
                           </td>
                         )}
 
-                        <td style={{ padding: '12px 16px', fontWeight: '700', color: row.Sharpe >= 1.0 ? '#00ff66' : '#ff3366' }}>{row.Sharpe?.toFixed(2)}</td> 
-                        <td style={{ padding: '12px 16px' }}>{row.WinRate?.toFixed(1)}%</td> 
-                        <td style={{ padding: '12px 16px', color: '#d2e0f5' }}>{row.Trades}</td> 
-                        <td style={{ padding: '12px 16px', color: row.PnL >= 0 ? '#00ff66' : '#ff3366', fontWeight: '700' }}>{row.PnL?.toFixed(2)}</td> 
-                        <td style={{ padding: '12px 16px', fontWeight: '700', color: '#af40ff' }}>{row.EV?.toFixed(2)}</td> 
-                        <td style={{ padding: '12px 16px', color: row.Alpha >= 0 ? '#ffaa00' : '#ff3366', fontWeight: '700' }}>{row.Alpha?.toFixed(2)}</td> 
+                        <td style={{ padding: '10px 12px', fontWeight: '700', color: row.Sharpe >= 1.0 ? '#00ff66' : '#ff3366' }}>{row.Sharpe?.toFixed(2)}</td> 
+                        <td style={{ padding: '10px 12px' }}>{row.WinRate?.toFixed(1)}%</td> 
+                        <td style={{ padding: '10px 12px', color: '#cbd5e1' }}>{row.Trades}</td> 
+                        <td style={{ padding: '10px 12px', color: row.PnL >= 0 ? '#00ff66' : '#ff3366', fontWeight: '700' }}>{row.PnL?.toFixed(2)}</td> 
+                        <td style={{ padding: '10px 12px', fontWeight: '700', color: '#af40ff' }}>{row.EV?.toFixed(2)}</td> 
+                        <td style={{ padding: '10px 12px', color: row.Alpha >= 0 ? '#ffaa00' : '#ff3366', fontWeight: '700' }}>{row.Alpha?.toFixed(2)}</td> 
                         
-                        <td style={{ padding: '12px 16px', color: '#ffaa00', fontWeight: '700' }}>
+                        <td style={{ padding: '10px 12px', color: '#ffaa00', fontWeight: '700' }}>
                           {data[0]?.PF !== undefined 
                             ? (row.PF !== undefined ? row.PF.toFixed(2) : 'N/A') 
                             : (row.AverageDD !== undefined ? `${row.AverageDD.toFixed(2)}` : 'N/A')}
                         </td> 
 
-                        <td style={{ padding: '12px 16px', color: '#af40ff', fontWeight: '700' }}>
+                        <td style={{ padding: '10px 12px', color: '#af40ff', fontWeight: '700' }}>
                           {data[0]?.PF !== undefined 
                             ? '' 
                             : (row.TPD_Ret !== undefined ? `${row.TPD_Ret.toFixed(1)}%` : 'N/A')}
                         </td>
 
-                        <td style={{ padding: '12px 16px', color: '#af40ff', fontWeight: '700' }}>
+                        <td style={{ padding: '10px 12px', color: '#af40ff', fontWeight: '700' }}>
                           {data[0]?.PF !== undefined 
                             ? '' 
                             : (row.WFE !== undefined ? `${row.WFE.toFixed(1)}%` : 'N/A')}
                         </td> 
                         
-                        <td style={{ padding: '12px 16px', fontWeight: '800', color: row.Passed === true || row.Passed === 'true' ? '#00ff66' : '#ff3366' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: '800', color: row.Passed === true || row.Passed === 'true' ? '#00ff66' : '#ff3366' }}>
                           {row.Passed === true || row.Passed === 'true' ? 'PASS' : 'FAIL'}
                         </td>
                       </tr> 
