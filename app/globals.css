@@ -4,7 +4,7 @@
   --term-bg: #020406;
   --term-surface: #070b11;
   --term-surface-muted: #0e1420;
-  --term-border: #162235;
+  --term-border: #1d2d44;
   --term-border-focus: #00ff66;
   
   --neon-cyan: #00f0ff;
@@ -12,8 +12,8 @@
   --neon-amber: #ffaa00;
   --neon-red: #ff3366;
   --neon-purple: #af40ff;
-  --term-text: #d0daf0;
-  --term-muted: #485973;
+  --term-text: #d2e0f5;
+  --term-muted: #5c7294;
 }
 
 * {
@@ -29,62 +29,62 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    linear-gradient(rgba(22, 34, 53, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(22, 34, 53, 0.3) 1px, transparent 1px);
-  background-size: 16px 16px;
+    linear-gradient(rgba(29, 45, 68, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 45, 68, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px;
   position: relative;
 }
 
-/* Sharp CRT Raster Lines Overlay */
+/* Clear Industrial CRT Scanline Overlay */
 body::before {
   content: " ";
   display: block;
   position: fixed;
   top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
   z-index: 99999;
-  opacity: 0.6;
+  opacity: 0.55;
   pointer-events: none;
-  background-size: 100% 3px, 3px 100%;
+  background-size: 100% 4px, 4px 100%;
 }
 
-/* Rugged UI Keyframe Pipeline */
+/* Heavy-Duty UI Keyframe Sequencer */
 @keyframes consoleUnfurl {
-  from { opacity: 0; transform: translateY(4px); filter: brightness(1.5); }
+  from { opacity: 0; transform: translateY(6px); filter: brightness(1.3); }
   to { opacity: 1; transform: translateY(0); filter: brightness(1); }
 }
 
 @keyframes signalPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.4; }
 }
 
 .animate-cascade {
   opacity: 0;
-  animation: consoleUnfurl 0.25s cubic-bezier(0.2, 1, 0.2, 1) forwards;
+  animation: consoleUnfurl 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .seq-0 { animation-delay: 0.0s; }
-.seq-1 { animation-delay: 0.06s; }
-.seq-2 { animation-delay: 0.12s; }
-.seq-3 { animation-delay: 0.18s; }
-.seq-4 { animation-delay: 0.24s; }
+.seq-1 { animation-delay: 0.05s; }
+.seq-2 { animation-delay: 0.1s; }
+.seq-3 { animation-delay: 0.15s; }
+.seq-4 { animation-delay: 0.2s; }
 
 .pulse-glow {
-  animation: signalPulse 1.5s infinite ease-in-out;
+  animation: signalPulse 1.8s infinite ease-in-out;
 }
 
-/* Custom Hardware Scrollbar Trackers */
+/* Mechanical Console Scrollbar Trackers */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--term-bg);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--term-border);
-  border-radius: 0px;
+  border: 2px solid var(--term-bg);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--neon-cyan);
@@ -92,8 +92,11 @@ body::before {
 
 input, select {
   border-radius: 0px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
 }
 input:focus, select:focus {
   outline: none;
   border-color: var(--term-border-focus) !important;
+  background-color: var(--term-surface-muted) !important;
 }
