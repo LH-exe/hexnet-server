@@ -1,85 +1,98 @@
-:root {
-  --term-bg: #030303;
-  --term-green: #00ff41;
-  --term-green-dim: #004d14;
-  --term-cyan: #08f7fe;
-  --term-red: #ff2a2a;
-  --term-white: #e0e0e0;
-  --term-border: #1a4a1a;
-  --term-muted: #447744;
-}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--term-bg);
-  color: var(--term-green);
-  font-family: var(--font-geist-mono), "Courier New", Courier, monospace;
-  height: 100%;
-  overflow-x: hidden;
-  -webkit-font-smoothing: none;
+:root {
+  --term-bg: #03060a;
+  --term-surface: #090e16;
+  --term-surface-muted: #111823;
+  --term-border: #1a2638;
+  --term-border-glow: rgba(0, 240, 255, 0.15);
+  
+  --neon-cyan: #00f0ff;
+  --neon-green: #00ff66;
+  --neon-amber: #ffaa00;
+  --neon-red: #ff3366;
+  --neon-purple: #af40ff;
+  --term-text: #c5d1e0;
+  --term-muted: #53637c;
 }
 
 * {
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
 }
 
-@keyframes bootUp {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+body {
+  background-color: var(--term-bg);
+  color: var(--term-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    linear-gradient(rgba(18, 24, 38, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 24, 38, 0.4) 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
 }
 
-.boot-seq-1 { animation: bootUp 0.3s ease-out forwards; opacity: 0; }
-.boot-seq-2 { animation: bootUp 0.3s ease-out 0.15s forwards; opacity: 0; }
-.boot-seq-3 { animation: bootUp 0.3s ease-out 0.3s forwards; opacity: 0; }
+/* CRT Scanline effect overlay */
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 99999;
+  opacity: 0.4;
+  pointer-events: none;
+  background-size: 100% 4px, 6px 100%;
+}
 
-@keyframes blinkCursor {
+/* Global Animations */
+@keyframes termFadeIn {
+  from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes terminalBlink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
 
+.animate-fade-in {
+  opacity: 0;
+  animation: termFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.12s; }
+.delay-3 { animation-delay: 0.2s; }
+.delay-4 { animation-delay: 0.28s; }
+
 .cursor-blink {
-  display: inline-block;
-  width: 8px;
-  height: 18px;
-  background-color: var(--term-green);
-  vertical-align: middle;
-  animation: blinkCursor 1s step-end infinite;
-  margin-left: 4px;
+  animation: terminalBlink 1s infinite;
 }
 
-/* Hard pixel UI styling for form inputs */
-.cli-input {
-  background: #000000 !important;
-  border: 1px solid var(--term-border) !important;
-  color: var(--term-cyan) !important;
-  font-family: inherit !important;
-  padding: 6px 10px !important;
-  outline: none !important;
+/* Custom Scrollbar for Terminal Panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.cli-input:focus {
-  border-color: var(--term-cyan) !important;
+::-webkit-scrollbar-track {
+  background: var(--term-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--term-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--term-muted);
 }
 
-.cli-btn {
-  background: transparent;
-  border: 1px solid var(--term-green);
-  color: var(--term-green);
-  font-family: inherit;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-.cli-btn:hover {
-  background: var(--term-green-dim);
-  color: var(--term-white);
-}
-.cli-btn-danger {
-  border-color: var(--term-red);
-  color: var(--term-red);
-}
-.cli-btn-danger:hover {
-  background: #4d0000;
-  color: var(--term-white);
+/* Custom focus resets for terminal inputs */
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--neon-cyan) !important;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
 }
