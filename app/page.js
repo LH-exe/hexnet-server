@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
-// --- Safe SVG Equity Curve Renderer ---
+// --- Brutalist SVG Equity Curve Renderer ---
 const Sparkline = ({ data, color }) => {
   let parsedData = [];
   try { parsedData = typeof data === 'string' ? JSON.parse(data) : data; } 
@@ -28,59 +28,64 @@ export default function HexnetCLI() {
   const [cmdState, setCmdState] = useState(null);
   const [csvData, setCsvData] = useState([]);
   
-  // --- RESTORED HEXNET EXACT STATE VARIABLES ---
+  // =========================================================================
+  // 100% ACCURATE STATE VARIABLES (MAPPED DIRECTLY FROM HEXNETORIGINAL.PDF)
+  // =========================================================================
   
-  // Generation Parameters
+  // 1. Data Engine
+  const [ticker, setTicker] = useState('SPY');
+  const [interval, setIntervalStr] = useState('1m');
+  const [dataStart, setDataStart] = useState('2019-10-03');
+  const [dataEnd, setDataEnd] = useState('2026-05-13');
+  const [hideExtHours, setHideExtHours] = useState(false);
+
+  // 2. Generator Core
   const [mode, setMode] = useState('Generate Random Strategies');
-  const [strategy, setStrategy] = useState('');
-  const [sims, setSims] = useState(100);
-  const [sort, setSort] = useState('Composite Score');
+  const [sims, setSims] = useState(1000000);
+  const [sort, setSort] = useState('Custom Score');
+  const [gens, setGens] = useState(15);
+  const [advFilters, setAdvFilters] = useState(true);
+  const [geneticAutoLoop, setGeneticAutoLoop] = useState(true);
 
-  // Custom Fitness Weights
-  const [wrWeight, setWrWeight] = useState(1.0);
-  const [pfWeight, setPfWeight] = useState(1.0);
-  const [ddWeight, setDdWeight] = useState(1.0);
-  const [retWeight, setRetWeight] = useState(1.0);
-  const [tpdWeight, setTpdWeight] = useState(1.0);
+  // 3. Custom Fitness Weights (The exact 9 from your UI)
+  const [wWinRate, setWWinRate] = useState(0.0);
+  const [wNetPnl, setWNetPnl] = useState(0.75);
+  const [wExpValue, setWExpValue] = useState(1.0);
+  const [wTpd, setWTpd] = useState(0.5);
+  const [wTpdRet, setWTpdRet] = useState(0.75);
+  const [wSharpe, setWSharpe] = useState(0.75);
+  const [wAlpha, setWAlpha] = useState(0.1);
+  const [wAddInv, setWAddInv] = useState(0.5);
+  const [wAvgLossInv, setWAvgLossInv] = useState(0.5);
 
-  // Advanced Generation Filters
-  const [advEnabled, setAdvEnabled] = useState(false);
-  const [smaMin, setSmaMin] = useState(10);
-  const [smaMax, setSmaMax] = useState(200);
+  // 4. Dynamic Time Windows
+  const [inSampleStart, setInSampleStart] = useState('2023-07-27');
+  const [inSampleEnd, setInSampleEnd] = useState('2025-07-07');
+  const [oosWindows, setOosWindows] = useState([
+    { start: '2025-07-08', end: '2026-05-13' }
+  ]);
+
+  // 5. Advanced Gates & Constraints
+  const [smaMin, setSmaMin] = useState(1);
+  const [smaMax, setSmaMax] = useState(1000);
   const [tpMin, setTpMin] = useState(0.1);
-  const [tpMax, setTpMax] = useState(2.0);
+  const [tpMax, setTpMax] = useState(5.0);
   const [slMin, setSlMin] = useState(0.1);
-  const [slMax, setSlMax] = useState(2.0);
-  const [logicMax, setLogicMax] = useState(2);
-
-  // Optimization Constraints
-  const [idealTpd, setIdealTpd] = useState(3.0);
+  const [slMax, setSlMax] = useState(5.0);
+  const [maxGates, setMaxGates] = useState(3);
+  const [idealTpd, setIdealTpd] = useState(5.0);
   const [minTpd, setMinTpd] = useState(1.0);
-  const [idealEv, setIdealEv] = useState(10.0);
-  const [minEv, setMinEv] = useState(0.0);
-  const [idealPf, setIdealPf] = useState(1.8);
-  const [minPf, setMinPf] = useState(1.1);
-  const [wfeMin, setWfeMin] = useState(45.0);
 
-  // Time Window Settings
-  const [isStart, setIsStart] = useState('2024-01-01');
-  const [isEnd, setIsEnd] = useState('2024-06-30');
-  const [oosStart, setOosStart] = useState('2024-07-01');
-  const [oosEnd, setOosEnd] = useState('2024-12-31');
-
-  // Automated Backtest Sequence
-  const [auto, setAuto] = useState(true);
-  const [autoMax, setAutoMax] = useState(10); // Max Generations
-  const [totalStrats, setTotalStrats] = useState(100); // Total Strategies
-  const [geneticAi, setGeneticAi] = useState(false);
-
-  // Live Tracking Mock
+  // Portfolio Mock Data
   const [liveMetrics] = useState({
     balance: "100,000.00", equity: "100,000.00", openPnL: "0.00", dailyPnL: "0.00", margin: "0.00"
   });
 
   const hasLoadedInitial = useRef(false);
 
+  // -------------------------------------------------------------------------
+  // NETWORK & SYNC LOGIC
+  // -------------------------------------------------------------------------
   useEffect(() => {
     const fetchState = async () => {
       try {
@@ -88,45 +93,11 @@ export default function HexnetCLI() {
         const data = await res.json();
         setCmdState(data);
 
+        // Map backend state on first load if it exists
         if (!hasLoadedInitial.current && data) {
-          if (data.mode !== undefined) setMode(data.mode);
-          if (data.strategy !== undefined) setStrategy(data.strategy);
+          if (data.ticker !== undefined) setTicker(data.ticker);
           if (data.sims !== undefined) setSims(data.sims);
-          if (data.sort !== undefined) setSort(data.sort);
-          
-          if (data.wr_weight !== undefined) setWrWeight(data.wr_weight);
-          if (data.pf_weight !== undefined) setPfWeight(data.pf_weight);
-          if (data.dd_weight !== undefined) setDdWeight(data.dd_weight);
-          if (data.ret_weight !== undefined) setRetWeight(data.ret_weight);
-          if (data.tpd_weight !== undefined) setTpdWeight(data.tpd_weight);
-
-          if (data.adv_enabled !== undefined) setAdvEnabled(data.adv_enabled);
-          if (data.sma_min !== undefined) setSmaMin(data.sma_min);
-          if (data.sma_max !== undefined) setSmaMax(data.sma_max);
-          if (data.tp_min !== undefined) setTpMin(data.tp_min);
-          if (data.tp_max !== undefined) setTpMax(data.tp_max);
-          if (data.sl_min !== undefined) setSlMin(data.sl_min);
-          if (data.sl_max !== undefined) setSlMax(data.sl_max);
-          if (data.logic_max !== undefined) setLogicMax(data.logic_max);
-
-          if (data.ideal_tpd !== undefined) setIdealTpd(data.ideal_tpd);
-          if (data.min_tpd !== undefined) setMinTpd(data.min_tpd);
-          if (data.ideal_ev !== undefined) setIdealEv(data.ideal_ev);
-          if (data.min_ev !== undefined) setMinEv(data.min_ev);
-          if (data.ideal_pf !== undefined) setIdealPf(data.ideal_pf);
-          if (data.min_pf !== undefined) setMinPf(data.min_pf);
-          if (data.wfe_min !== undefined) setWfeMin(data.wfe_min);
-
-          if (data.is_start !== undefined) setIsStart(data.is_start);
-          if (data.is_end !== undefined) setIsEnd(data.is_end);
-          if (data.oos_start !== undefined) setOosStart(data.oos_start);
-          if (data.oos_end !== undefined) setOosEnd(data.oos_end);
-
-          if (data.auto !== undefined) setAuto(data.auto);
-          if (data.auto_max !== undefined) setAutoMax(data.auto_max);
-          if (data.total_strats !== undefined) setTotalStrats(data.total_strats);
-          if (data.genetic_ai !== undefined) setGeneticAi(data.genetic_ai);
-          
+          if (data.oos_windows !== undefined) setOosWindows(data.oos_windows);
           hasLoadedInitial.current = true;
         }
       } catch (err) { console.error("Fetch Err:", err); }
@@ -141,244 +112,277 @@ export default function HexnetCLI() {
     };
 
     fetchState(); fetchCsv();
-    const interval = setInterval(() => { fetchState(); fetchCsv(); }, 1000);
-    return () => clearInterval(interval);
+    const intervalId = setInterval(() => { fetchState(); fetchCsv(); }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const sendCommand = async (statusOverride = null) => {
+  const sendCommand = async (actionCommand = null) => {
     const payload = {
-      mode, strategy, sims: Number(sims), sort,
-      wr_weight: Number(wrWeight), pf_weight: Number(pfWeight), dd_weight: Number(ddWeight), ret_weight: Number(retWeight), tpd_weight: Number(tpdWeight),
-      adv_enabled: advEnabled, sma_min: Number(smaMin), sma_max: Number(smaMax), tp_min: Number(tpMin), tp_max: Number(tpMax), sl_min: Number(slMin), sl_max: Number(slMax), logic_max: Number(logicMax),
-      ideal_tpd: Number(idealTpd), min_tpd: Number(minTpd), ideal_ev: Number(idealEv), min_ev: Number(minEv), ideal_pf: Number(idealPf), min_pf: Number(minPf), wfe_min: Number(wfeMin),
-      is_start: isStart, is_end: isEnd, oos_start: oosStart, oos_end: oosEnd,
-      auto, auto_max: Number(autoMax), total_strats: Number(totalStrats), genetic_ai: geneticAi
+      // General Config
+      ticker, interval: intervalStr, data_start: dataStart, data_end: dataEnd, hide_ext_hours: hideExtHours,
+      // Engine Config
+      mode, sims: Number(sims), sort, gens: Number(gens), adv_filters: advFilters, genetic_auto_loop: geneticAutoLoop,
+      // Weights
+      w_win_rate: Number(wWinRate), w_net_pnl: Number(wNetPnl), w_exp_value: Number(wExpValue), w_tpd: Number(wTpd),
+      w_tpd_ret: Number(wTpdRet), w_sharpe: Number(wSharpe), w_alpha: Number(wAlpha), w_add_inv: Number(wAddInv), w_avg_loss_inv: Number(wAvgLossInv),
+      // Time Windows
+      in_sample_start: inSampleStart, in_sample_end: inSampleEnd, oos_windows: oosWindows,
+      // Constraints
+      sma_min: Number(smaMin), sma_max: Number(smaMax), tp_min: Number(tpMin), tp_max: Number(tpMax),
+      sl_min: Number(slMin), sl_max: Number(slMax), max_gates: Number(maxGates), ideal_tpd: Number(idealTpd), min_tpd: Number(minTpd)
     };
-    if (statusOverride) payload.status = statusOverride;
+    
+    if (actionCommand) payload.status = actionCommand;
 
     try {
       await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     } catch (err) { console.error("Command Post Err:", err); }
   };
 
-  // UI Components
-  const layoutPanel = { border: '1px solid var(--term-border)', padding: '20px', background: '#020202', display: 'flex', flexDirection: 'column', gap: '15px' };
-  const parameterGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' };
+  // -------------------------------------------------------------------------
+  // DYNAMIC OOS HANDLERS
+  // -------------------------------------------------------------------------
+  const addOosWindow = () => {
+    setOosWindows([...oosWindows, { start: '', end: '' }]);
+  };
+  
+  const updateOosWindow = (index, field, value) => {
+    const newWindows = [...oosWindows];
+    newWindows[index][field] = value;
+    setOosWindows(newWindows);
+  };
+
+  const removeOosWindow = (index) => {
+    const newWindows = [...oosWindows];
+    newWindows.splice(index, 1);
+    setOosWindows(newWindows);
+  };
+
+  // -------------------------------------------------------------------------
+  // UI HELPERS
+  // -------------------------------------------------------------------------
+  const panelStyle = { border: '1px solid var(--term-border)', padding: '20px', background: '#030303', display: 'flex', flexDirection: 'column', gap: '15px' };
   const InputGroup = ({ label, children }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%' }}>
       <label style={{ fontSize: '11px', color: 'var(--term-muted)', textTransform: 'uppercase' }}>{label}</label>
       {children}
+    </div>
+  );
+  const PanelHeader = ({ title }) => (
+    <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '5px', fontWeight: 'bold' }}>
+      {`[ ${title} ]`}
     </div>
   );
 
   return (
     <div style={{ padding: '30px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
-      {/* HEADER */}
+      {/* HEADER: Matching HexnetOriginal.pdf */}
       <div style={{ borderBottom: '1px solid var(--term-green)', paddingBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }} className="boot-seq-1">
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', letterSpacing: '2px', color: 'var(--term-white)' }}>
-            HEXNET_WEB_COMMAND_CENTER <span style={{ color: 'var(--term-green)' }}>v2.9.9.9.8.1</span>
-          </h1>
-          <div style={{ fontSize: '11px', color: 'var(--term-muted)', marginTop: '4px' }}>
-            SYS_TIME: {new Date().toLocaleTimeString()} | PIPELINE_STATE: {cmdState?.status ? cmdState.status.toUpperCase() : 'IDLE'}
+          <h1 style={{ margin: 0, fontSize: '24px', letterSpacing: '2px', color: 'var(--term-white)' }}>HEXNET REMOTE COMMAND</h1>
+          <div style={{ fontSize: '12px', color: 'var(--term-muted)', marginTop: '4px' }}>
+            ENGINE STATUS: <span style={{ color: cmdState?.engine_status === 'online' ? 'var(--term-green)' : 'var(--term-red)' }}>{cmdState?.engine_status ? cmdState.engine_status.toUpperCase() : 'OFFLINE'}</span> | SYNC: {new Date().toLocaleTimeString()}
           </div>
         </div>
-        <div style={{ textAlign: 'right', fontSize: '13px' }}>
-          DESKTOP_DAEMON: <span style={{ color: cmdState?.engine_status === 'online' ? 'var(--term-green)' : 'var(--term-red)' }}>[{cmdState?.engine_status ? cmdState.engine_status.toUpperCase() : 'OFFLINE'}]</span><span className="cursor-blink"></span>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="cli-btn" onClick={() => sendCommand('sync_requested')}>FORCE DESKTOP SYNC</button>
+          <button className="cli-btn" onClick={() => sendCommand('fetch_requested')}>↓ DEBUG STATS</button>
+          {csvData.length > 0 && <a href="/api/upload?download=true" className="cli-btn" style={{ textDecoration: 'none' }}>! DOWNLOAD RESULTS</a>}
         </div>
       </div>
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid var(--term-border)' }} className="boot-seq-2">
-        {['portfolio', 'generator', 'live'].map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            background: 'transparent', border: 'none', color: activeTab === tab ? 'var(--term-cyan)' : 'var(--term-muted)',
-            fontFamily: 'inherit', fontSize: '15px', cursor: 'pointer', padding: '12px 5px', textTransform: 'uppercase',
-            fontWeight: activeTab === tab ? 'bold' : 'normal', letterSpacing: '1px'
-          }}>
-            {activeTab === tab ? `> [ 0${['portfolio', 'generator', 'live'].indexOf(tab)+1}.${tab.toUpperCase()} ]` : `[ 0${['portfolio', 'generator', 'live'].indexOf(tab)+1}.${tab.toUpperCase()} ]`}
-          </button>
-        ))}
+        {['portfolio', 'strategy generator', 'telemetry stream'].map((tab, idx) => {
+          const tabKey = tab.split(' ')[0];
+          return (
+            <button key={tabKey} onClick={() => setActiveTab(tabKey)} style={{
+              background: 'transparent', border: 'none', color: activeTab === tabKey ? 'var(--term-cyan)' : 'var(--term-muted)',
+              fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer', padding: '10px 5px', textTransform: 'uppercase',
+              fontWeight: activeTab === tabKey ? 'bold' : 'normal', letterSpacing: '1px'
+            }}>
+              {activeTab === tabKey ? `> [ 0${idx+1}.${tab} ]` : `[ 0${idx+1}.${tab} ]`}
+            </button>
+          );
+        })}
       </div>
 
       {/* ================= TAB 01: PORTFOLIO ================= */}
       {activeTab === 'portfolio' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="boot-seq-3">
-          <div style={{ ...layoutPanel, borderColor: 'var(--term-red)', color: 'var(--term-red)', padding: '12px' }}>
-            {"[! ] SYSTEM ALERT: EXECUTION ROUTER IS DISCONNECTED. AWAITING PROP_FIRM_API GATEWAY CREDENTIALS."}
+          <div style={{ ...panelStyle, borderColor: 'var(--term-red)', color: 'var(--term-red)', padding: '15px' }}>
+            {"[! ] NO BROKER DATA FEED DETECTED. LIVE FIRE TESTING DISABLED."}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
             {Object.entries(liveMetrics).map(([key, val]) => (
-              <div key={key} style={layoutPanel}>
-                <div style={{ color: 'var(--term-muted)', fontSize: '11px', textTransform: 'uppercase' }}>{key}</div>
-                <div style={{ fontSize: '24px', color: key === 'margin' || key === 'balance' ? 'var(--term-white)' : 'var(--term-green)' }}>${val}</div>
+              <div key={key} style={panelStyle}>
+                <div style={{ color: 'var(--term-muted)', fontSize: '12px', textTransform: 'uppercase' }}>{key}</div>
+                <div style={{ fontSize: '28px', color: key === 'margin' || key === 'balance' ? 'var(--term-white)' : 'var(--term-green)' }}>${val}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ================= TAB 02: GENERATOR CONTROL PANELS (ACCURATE) ================= */}
-      {activeTab === 'generator' && (
+      {/* ================= TAB 02: STRATEGY GENERATOR ================= */}
+      {activeTab === 'strategy' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="boot-seq-3">
           
-          <div style={{ ...layoutPanel, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '13px' }}>STAGE_LOG: <span style={{ color: 'var(--term-cyan)' }}>{cmdState?.stage_text || 'AWAITING_SEQUENCE'}</span></div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button className="cli-btn" onClick={() => sendCommand('sync_requested')}>[ SYNC ]</button>
-              <button className="cli-btn" onClick={() => sendCommand('fetch_requested')}>[ FETCH ]</button>
-              <button className="cli-btn" onClick={() => sendCommand('backtest_requested')}>[ RUN BACKTEST ]</button>
-              <button className="cli-btn cli-btn-danger" onClick={() => sendCommand('stop_requested')}>[ FORCE STOP ]</button>
+          {/* TOP BLOCK: Data Engine + Controls */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px' }}>
+            
+            <div style={panelStyle}>
+              <PanelHeader title="DATA ENGINE" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', alignItems: 'end' }}>
+                <InputGroup label="Ticker"><input type="text" className="cli-input" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} /></InputGroup>
+                <InputGroup label="Interval"><input type="text" className="cli-input" value={intervalStr} onChange={(e) => setIntervalStr(e.target.value)} /></InputGroup>
+                <InputGroup label="Start Date"><input type="date" className="cli-input" value={dataStart} onChange={(e) => setDataStart(e.target.value)} /></InputGroup>
+                <InputGroup label="End Date"><input type="date" className="cli-input" value={dataEnd} onChange={(e) => setDataEnd(e.target.value)} /></InputGroup>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="checkbox" checked={hideExtHours} onChange={(e) => setHideExtHours(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
+                    <span style={{ fontSize: '11px', color: 'var(--term-white)' }}>HIDE EXT. HOURS</span>
+                  </div>
+                  <button className="cli-btn" style={{ fontSize: '11px', padding: '4px' }}>REMOTE FETCH</button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...panelStyle, justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button className="cli-btn" onClick={() => sendCommand('backtest_requested')} style={{ fontSize: '16px', padding: '15px', background: 'var(--term-green-dim)' }}>► START ENGINE</button>
+                <button className="cli-btn cli-btn-danger" onClick={() => sendCommand('stop_requested')} style={{ fontSize: '16px', padding: '15px' }}>■ STOP</button>
+              </div>
             </div>
           </div>
 
+          {/* MIDDLE BLOCK: Generator Constraints & Weights */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            {/* Generation Parameters */}
-            <div style={layoutPanel}>
-              <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>[ Generation Parameters ]</div>
-              <InputGroup label="Mode">
-                <select className="cli-input" value={mode} onChange={(e) => setMode(e.target.value)}>
-                  <option value="Generate Random Strategies">Generate Random Strategies</option>
-                  <option value="Generate Advanced Optimal Strategies">Generate Advanced Optimal Strategies</option>
-                </select>
-              </InputGroup>
-              <InputGroup label="Available Strategies">
-                <select className="cli-input" value={strategy} onChange={(e) => setStrategy(e.target.value)}>
-                  <option value="">-- Select Strategy --</option>
-                  {cmdState?.available_strats?.map((s, idx) => <option key={idx} value={s}>{s}</option>)}
-                </select>
-              </InputGroup>
+            
+            <div style={panelStyle}>
+              <PanelHeader title="GENERATOR CONFIGURATION" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <InputGroup label="Simulations">
-                  <input type="number" className="cli-input" value={sims} onChange={(e) => setSims(e.target.value)} />
-                </InputGroup>
-                <InputGroup label="Sorting Metric">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <select className="cli-input" style={{ width: '100%' }} value={mode} onChange={(e) => setMode(e.target.value)}>
+                    <option>Generate Random Strategies</option>
+                    <option>Generate Advanced Optimal Strategies</option>
+                  </select>
+                </div>
+                <InputGroup label="SIMS"><input type="number" className="cli-input" value={sims} onChange={(e) => setSims(e.target.value)} /></InputGroup>
+                <InputGroup label="GENS"><input type="number" className="cli-input" value={gens} onChange={(e) => setGens(e.target.value)} /></InputGroup>
+                <InputGroup label="Sort By">
                   <select className="cli-input" value={sort} onChange={(e) => setSort(e.target.value)}>
-                    <option value="Composite Score">Composite Score</option>
-                    <option value="Win Rate">Win Rate</option>
-                    <option value="Profit Factor">Profit Factor</option>
-                    <option value="Total Return">Total Return</option>
+                    <option>Custom Score</option>
+                    <option>Win Rate</option>
                   </select>
                 </InputGroup>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="checkbox" checked={advFilters} onChange={(e) => setAdvFilters(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
+                    <span style={{ fontSize: '12px', color: 'var(--term-white)' }}>ADV. FILTERS</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="checkbox" checked={geneticAutoLoop} onChange={(e) => setGeneticAutoLoop(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
+                    <span style={{ fontSize: '12px', color: 'var(--term-white)' }}>GENETIC AUTO-LOOP</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Custom Fitness Weights */}
-            <div style={layoutPanel}>
-              <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>[ Custom Fitness Weights ]</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-                <InputGroup label="WR Wgt"><input type="number" step="0.1" className="cli-input" value={wrWeight} onChange={(e) => setWrWeight(e.target.value)} /></InputGroup>
-                <InputGroup label="PF Wgt"><input type="number" step="0.1" className="cli-input" value={pfWeight} onChange={(e) => setPfWeight(e.target.value)} /></InputGroup>
-                <InputGroup label="DD Wgt"><input type="number" step="0.1" className="cli-input" value={ddWeight} onChange={(e) => setDdWeight(e.target.value)} /></InputGroup>
-                <InputGroup label="RET Wgt"><input type="number" step="0.1" className="cli-input" value={retWeight} onChange={(e) => setRetWeight(e.target.value)} /></InputGroup>
-                <InputGroup label="TPD Wgt"><input type="number" step="0.1" className="cli-input" value={tpdWeight} onChange={(e) => setTpdWeight(e.target.value)} /></InputGroup>
+            <div style={panelStyle}>
+              <PanelHeader title="CUSTOM FITNESS WEIGHTS (0.0 to 1.0)" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <InputGroup label="WIN RATE"><input type="number" step="0.01" className="cli-input" value={wWinRate} onChange={(e) => setWWinRate(e.target.value)} /></InputGroup>
+                <InputGroup label="NET PNL"><input type="number" step="0.01" className="cli-input" value={wNetPnl} onChange={(e) => setWNetPnl(e.target.value)} /></InputGroup>
+                <InputGroup label="EXP VALUE"><input type="number" step="0.01" className="cli-input" value={wExpValue} onChange={(e) => setWExpValue(e.target.value)} /></InputGroup>
+                
+                <InputGroup label="TPD"><input type="number" step="0.01" className="cli-input" value={wTpd} onChange={(e) => setWTpd(e.target.value)} /></InputGroup>
+                <InputGroup label="TPD RET"><input type="number" step="0.01" className="cli-input" value={wTpdRet} onChange={(e) => setWTpdRet(e.target.value)} /></InputGroup>
+                <InputGroup label="SHARPE"><input type="number" step="0.01" className="cli-input" value={wSharpe} onChange={(e) => setWSharpe(e.target.value)} /></InputGroup>
+                
+                <InputGroup label="ALPHA"><input type="number" step="0.01" className="cli-input" value={wAlpha} onChange={(e) => setWAlpha(e.target.value)} /></InputGroup>
+                <InputGroup label="ADD (INV)"><input type="number" step="0.01" className="cli-input" value={wAddInv} onChange={(e) => setWAddInv(e.target.value)} /></InputGroup>
+                <InputGroup label="AVG LOSS(INV)"><input type="number" step="0.01" className="cli-input" value={wAvgLossInv} onChange={(e) => setWAvgLossInv(e.target.value)} /></InputGroup>
               </div>
             </div>
+
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-            {/* Advanced Generation Filters */}
-            <div style={layoutPanel}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>
-                <span style={{ color: 'var(--term-cyan)', fontSize: '13px' }}>[ Advanced Generation Filters ]</span>
-                <input type="checkbox" checked={advEnabled} onChange={(e) => setAdvEnabled(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
+          {/* LOWER BLOCK: Timeline + Advanced Logic Constraints */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            
+            <div style={panelStyle}>
+              <PanelHeader title="DYNAMIC TIMELINE CONTROLS" />
+              
+              <div style={{ marginBottom: '15px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--term-cyan)', marginBottom: '5px' }}>IN-SAMPLE WINDOW</div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input type="date" className="cli-input" style={{ width: '50%' }} value={inSampleStart} onChange={(e) => setInSampleStart(e.target.value)} />
+                  <input type="date" className="cli-input" style={{ width: '50%' }} value={inSampleEnd} onChange={(e) => setInSampleEnd(e.target.value)} />
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <InputGroup label="SMA Min/Max">
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--term-cyan)' }}>OUT-OF-SAMPLE (OOS) WINDOWS</span>
+                  <button onClick={addOosWindow} style={{ background: 'none', border: 'none', color: 'var(--term-green)', cursor: 'pointer', fontSize: '12px' }}>[+ ADD WINDOW]</button>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '5px' }}>
+                  {oosWindows.map((win, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--term-muted)', fontSize: '10px' }}>{idx + 1}.</span>
+                      <input type="date" className="cli-input" style={{ width: '45%' }} value={win.start} onChange={(e) => updateOosWindow(idx, 'start', e.target.value)} />
+                      <input type="date" className="cli-input" style={{ width: '45%' }} value={win.end} onChange={(e) => updateOosWindow(idx, 'end', e.target.value)} />
+                      <button onClick={() => removeOosWindow(idx)} style={{ background: 'none', border: 'none', color: 'var(--term-red)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    </div>
+                  ))}
+                  {oosWindows.length === 0 && <span style={{ fontSize: '11px', color: 'var(--term-muted)' }}>NO OOS WINDOWS ACTIVE.</span>}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...panelStyle, opacity: advFilters ? 1 : 0.4 }}>
+              <PanelHeader title="ADVANCED FILTERS" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
+                <InputGroup label="SMA MIN / MAX">
                   <div style={{ display: 'flex', gap: '5px' }}>
                     <input type="number" className="cli-input" style={{ width: '50%' }} value={smaMin} onChange={(e) => setSmaMin(e.target.value)} />
                     <input type="number" className="cli-input" style={{ width: '50%' }} value={smaMax} onChange={(e) => setSmaMax(e.target.value)} />
                   </div>
                 </InputGroup>
-                <InputGroup label="TP Min/Max">
+                <InputGroup label="TP MIN / MAX">
                   <div style={{ display: 'flex', gap: '5px' }}>
                     <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={tpMin} onChange={(e) => setTpMin(e.target.value)} />
                     <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={tpMax} onChange={(e) => setTpMax(e.target.value)} />
                   </div>
                 </InputGroup>
-                <InputGroup label="SL Min/Max">
+                <InputGroup label="SL MIN / MAX">
                   <div style={{ display: 'flex', gap: '5px' }}>
                     <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={slMin} onChange={(e) => setSlMin(e.target.value)} />
                     <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={slMax} onChange={(e) => setSlMax(e.target.value)} />
                   </div>
                 </InputGroup>
-                <InputGroup label="Max Logic Elements">
-                  <input type="number" className="cli-input" value={logicMax} onChange={(e) => setLogicMax(e.target.value)} />
-                </InputGroup>
+
+                <InputGroup label="MAX GATES"><input type="number" className="cli-input" value={maxGates} onChange={(e) => setMaxGates(e.target.value)} /></InputGroup>
+                <InputGroup label="IDEAL TPD"><input type="number" step="0.1" className="cli-input" value={idealTpd} onChange={(e) => setIdealTpd(e.target.value)} /></InputGroup>
+                <InputGroup label="MIN TPD"><input type="number" step="0.1" className="cli-input" value={minTpd} onChange={(e) => setMinTpd(e.target.value)} /></InputGroup>
               </div>
             </div>
 
-            {/* Optimization Constraints */}
-            <div style={layoutPanel}>
-              <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>[ Optimization Constraints ]</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <InputGroup label="Ideal/Min TPD">
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={idealTpd} onChange={(e) => setIdealTpd(e.target.value)} />
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={minTpd} onChange={(e) => setMinTpd(e.target.value)} />
-                  </div>
-                </InputGroup>
-                <InputGroup label="Ideal/Min EV">
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={idealEv} onChange={(e) => setIdealEv(e.target.value)} />
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={minEv} onChange={(e) => setMinEv(e.target.value)} />
-                  </div>
-                </InputGroup>
-                <InputGroup label="Ideal/Min PF">
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={idealPf} onChange={(e) => setIdealPf(e.target.value)} />
-                    <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={minPf} onChange={(e) => setMinPf(e.target.value)} />
-                  </div>
-                </InputGroup>
-                <InputGroup label="Min WFE %">
-                  <input type="number" step="0.1" className="cli-input" value={wfeMin} onChange={(e) => setWfeMin(e.target.value)} />
-                </InputGroup>
-              </div>
-            </div>
-
-            {/* Time Window & Auto Loop */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={layoutPanel}>
-                <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>[ Time Window Settings ]</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <InputGroup label="In-Sample Start"><input type="date" className="cli-input" value={isStart} onChange={(e) => setIsStart(e.target.value)} /></InputGroup>
-                  <InputGroup label="In-Sample End"><input type="date" className="cli-input" value={isEnd} onChange={(e) => setIsEnd(e.target.value)} /></InputGroup>
-                  <InputGroup label="OOS Start"><input type="date" className="cli-input" value={oosStart} onChange={(e) => setOosStart(e.target.value)} /></InputGroup>
-                  <InputGroup label="OOS End"><input type="date" className="cli-input" value={oosEnd} onChange={(e) => setOosEnd(e.target.value)} /></InputGroup>
-                </div>
-              </div>
-
-              <div style={layoutPanel}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px', marginBottom: '10px' }}>
-                  <span style={{ color: 'var(--term-cyan)', fontSize: '13px' }}>[ Automated Backtest Sequence ]</span>
-                  <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', alignItems: 'end' }}>
-                  <InputGroup label="Max Generations"><input type="number" className="cli-input" value={autoMax} onChange={(e) => setAutoMax(e.target.value)} /></InputGroup>
-                  <InputGroup label="Total Strategies"><input type="number" className="cli-input" value={totalStrats} onChange={(e) => setTotalStrats(e.target.value)} /></InputGroup>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '35px' }}>
-                    <input type="checkbox" checked={geneticAi} onChange={(e) => setGeneticAi(e.target.checked)} style={{ accentColor: 'var(--term-green)' }} />
-                    <span style={{ fontSize: '12px', color: 'var(--term-muted)', textTransform: 'uppercase' }}>Enable Genetic AI</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Strategy Output Matrix */}
-          <div style={layoutPanel}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--term-border)', paddingBottom: '8px' }}>
-              <span style={{ color: 'var(--term-cyan)', fontSize: '13px' }}>{`~/hexnet/data/cached_results.csv (${csvData.length} Strategies Loaded)`}</span>
-              {csvData.length > 0 && <a href="/api/upload?download=true" className="cli-btn" style={{ fontSize: '11px', padding: '4px 10px', textDecoration: 'none' }}>[ EXPORT RAW CSV ]</a>}
-            </div>
-            <div style={{ overflowX: 'auto' }}>
+          {/* MASSIVE CSV TABLE BLOCK */}
+          <div style={panelStyle}>
+            <PanelHeader title={`CACHED RESULTS MATRIX (${csvData.length} RECORDS)`} />
+            <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
-                <thead>
+                <thead style={{ position: 'sticky', top: 0, background: '#030303', zIndex: 1 }}>
                   <tr style={{ color: 'var(--term-muted)', borderBottom: '1px solid var(--term-border)' }}>
                     <th style={{ padding: '10px' }}>ID / SIG</th>
                     <th style={{ padding: '10px' }}>LOGIC ENGINE</th>
-                    <th style={{ padding: '10px' }}>EQUITY STREAM</th>
+                    <th style={{ padding: '10px', minWidth: '150px' }}>EQUITY STREAM</th>
                     <th style={{ padding: '10px' }}>SCORE</th>
                     <th style={{ padding: '10px' }}>WIN %</th>
                     <th style={{ padding: '10px' }}>PF / AVG DD</th>
@@ -395,7 +399,7 @@ export default function HexnetCLI() {
                       <tr key={index} style={{ borderBottom: '1px solid #111', color: 'var(--term-white)' }}>
                         <td style={{ padding: '10px', color: 'var(--term-cyan)' }}>{row.ID || `STRAT_${index}`}</td>
                         <td style={{ padding: '10px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontStyle: 'italic', color: 'var(--term-muted)' }}>{row.Logic || 'N/A'}</td>
-                        <td style={{ padding: '10px', minWidth: '130px' }}><Sparkline data={row.EquityCurve || row.Trades} color={row.Passed === true || row.Passed === 'true' ? 'var(--term-green)' : 'var(--term-red)'} /></td>
+                        <td style={{ padding: '10px' }}><Sparkline data={row.EquityCurve || row.Trades} color={row.Passed === true || row.Passed === 'true' ? 'var(--term-green)' : 'var(--term-red)'} /></td>
                         <td style={{ padding: '10px', fontWeight: 'bold' }}>{row.CompositeScore !== undefined ? row.CompositeScore.toFixed(2) : (row.Score !== undefined ? row.Score.toFixed(2) : 'N/A')}</td>
                         <td style={{ padding: '10px' }}>{row.WinRate !== undefined ? `${row.WinRate.toFixed(1)}%` : (row.WR !== undefined ? `${row.WR.toFixed(1)}%` : 'N/A')}</td>
                         <td style={{ padding: '10px' }}>{row.PF !== undefined ? `PF: ${row.PF.toFixed(2)}` : `DD: $${row.AverageDD?.toFixed(0) || 'N/A'}`}</td>
@@ -409,33 +413,26 @@ export default function HexnetCLI() {
               </table>
             </div>
           </div>
+
         </div>
       )}
 
-      {/* ================= TAB 03: TELEMETRY ================= */}
-      {activeTab === 'live' && (
-        <div style={layoutPanel} className="boot-seq-3">
-          <div style={{ color: 'var(--term-cyan)', fontSize: '13px', borderBottom: '1px dashed var(--term-border)', paddingBottom: '6px' }}>~/hexnet/telemetry/runtime_logs.sh</div>
+      {/* ================= TAB 03: TELEMETRY STREAM ================= */}
+      {activeTab === 'telemetry' && (
+        <div style={panelStyle} className="boot-seq-3">
+          <PanelHeader title="RUNTIME LOGS & TELEMETRY" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '10px' }}>
             <div style={{ border: '1px solid #151515', padding: '15px' }}>
               <div style={{ color: 'var(--term-muted)', fontSize: '11px' }}>COMPUTATION_SPEED</div>
-              <div style={{ fontSize: '20px', color: 'var(--term-white)', marginTop: '5px' }}>{cmdState?.speed || '0.00'} sim/sec</div>
+              <div style={{ fontSize: '24px', color: 'var(--term-white)', marginTop: '5px' }}>{cmdState?.speed || '0.00'} <span style={{fontSize: '12px', color: 'var(--term-muted)'}}>sim/sec</span></div>
             </div>
             <div style={{ border: '1px solid #151515', padding: '15px' }}>
               <div style={{ color: 'var(--term-muted)', fontSize: '11px' }}>ESTIMATED_TIME_ARRIVAL</div>
-              <div style={{ fontSize: '20px', color: 'var(--term-cyan)', marginTop: '5px' }}>{cmdState?.eta || '00:00:00'}</div>
+              <div style={{ fontSize: '24px', color: 'var(--term-cyan)', marginTop: '5px' }}>{cmdState?.eta || '00:00:00'}</div>
             </div>
             <div style={{ border: '1px solid #151515', padding: '15px' }}>
               <div style={{ color: 'var(--term-muted)', fontSize: '11px' }}>CURRENT_GENERATION_LOOP</div>
-              <div style={{ fontSize: '20px', color: 'var(--term-green)', marginTop: '5px' }}>{cmdState?.gen_count || 0} / {cmdState?.auto_max || 0}</div>
-            </div>
-          </div>
-          <div style={{ marginTop: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '5px', color: 'var(--term-muted)' }}>
-              <span>COMPUTATION PROGRESS</span><span>{cmdState?.progress ? `${Number(cmdState.progress).toFixed(1)}%` : '0.0%'}</span>
-            </div>
-            <div style={{ height: '14px', border: '1px solid var(--term-border)', background: '#000', position: 'relative' }}>
-              <div style={{ height: '100%', width: cmdState?.progress ? `${cmdState.progress}%` : '0%', background: 'var(--term-green-dim)', transition: 'width 0.2s linear' }} />
+              <div style={{ fontSize: '24px', color: 'var(--term-green)', marginTop: '5px' }}>{cmdState?.gen_count || 0} <span style={{fontSize: '14px', color: 'var(--term-muted)'}}>/ {cmdState?.auto_max || gens}</span></div>
             </div>
           </div>
         </div>
