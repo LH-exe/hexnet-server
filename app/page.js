@@ -1,6 +1,13 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
+// --- Safe Numerical Formatter (PREVENTS FATAL REACT CRASHES) ---
+const safeNum = (val, decimals = 2) => {
+  if (val === null || val === undefined || val === '') return 'N/A';
+  const n = Number(val);
+  return isNaN(n) ? 'N/A' : n.toFixed(decimals);
+};
+
 // --- Brutalist SVG Equity Curve Renderer ---
 const Sparkline = ({ data, color }) => {
   let parsedData = [];
@@ -29,7 +36,7 @@ export default function HexnetCLI() {
   const [csvData, setCsvData] = useState([]);
   
   // =========================================================================
-  // 100% ACCURATE STATE VARIABLES (MAPPED DIRECTLY FROM HEXNETORIGINAL.PDF)
+  // STATE VARIABLES
   // =========================================================================
   
   // 1. Data Engine
@@ -47,7 +54,7 @@ export default function HexnetCLI() {
   const [advFilters, setAdvFilters] = useState(true);
   const [geneticAutoLoop, setGeneticAutoLoop] = useState(true);
 
-  // 3. Custom Fitness Weights (The exact 9 from your UI)
+  // 3. Custom Fitness Weights
   const [wWinRate, setWWinRate] = useState(0.0);
   const [wNetPnl, setWNetPnl] = useState(0.75);
   const [wExpValue, setWExpValue] = useState(1.0);
@@ -93,11 +100,10 @@ export default function HexnetCLI() {
         const data = await res.json();
         setCmdState(data);
 
-        // Map backend state on first load if it exists
         if (!hasLoadedInitial.current && data) {
           if (data.ticker !== undefined) setTicker(data.ticker);
           if (data.sims !== undefined) setSims(data.sims);
-          if (data.oos_windows !== undefined) setOosWindows(data.oos_windows);
+          if (Array.isArray(data.oos_windows)) setOosWindows(data.oos_windows); // Array safety check
           hasLoadedInitial.current = true;
         }
       } catch (err) { console.error("Fetch Err:", err); }
@@ -107,7 +113,7 @@ export default function HexnetCLI() {
       try {
         const res = await fetch('/api/upload');
         const data = await res.json();
-        if (data && data.length > 0) setCsvData(data);
+        if (Array.isArray(data) && data.length > 0) setCsvData(data); // Array safety check
       } catch (err) { console.error("CSV Fetch Err:", err); }
     };
 
@@ -118,16 +124,11 @@ export default function HexnetCLI() {
 
   const sendCommand = async (actionCommand = null) => {
     const payload = {
-      // General Config
       ticker, interval: intervalStr, data_start: dataStart, data_end: dataEnd, hide_ext_hours: hideExtHours,
-      // Engine Config
       mode, sims: Number(sims), sort, gens: Number(gens), adv_filters: advFilters, genetic_auto_loop: geneticAutoLoop,
-      // Weights
       w_win_rate: Number(wWinRate), w_net_pnl: Number(wNetPnl), w_exp_value: Number(wExpValue), w_tpd: Number(wTpd),
       w_tpd_ret: Number(wTpdRet), w_sharpe: Number(wSharpe), w_alpha: Number(wAlpha), w_add_inv: Number(wAddInv), w_avg_loss_inv: Number(wAvgLossInv),
-      // Time Windows
       in_sample_start: inSampleStart, in_sample_end: inSampleEnd, oos_windows: oosWindows,
-      // Constraints
       sma_min: Number(smaMin), sma_max: Number(smaMax), tp_min: Number(tpMin), tp_max: Number(tpMax),
       sl_min: Number(slMin), sl_max: Number(slMax), max_gates: Number(maxGates), ideal_tpd: Number(idealTpd), min_tpd: Number(minTpd)
     };
@@ -142,16 +143,12 @@ export default function HexnetCLI() {
   // -------------------------------------------------------------------------
   // DYNAMIC OOS HANDLERS
   // -------------------------------------------------------------------------
-  const addOosWindow = () => {
-    setOosWindows([...oosWindows, { start: '', end: '' }]);
-  };
-  
+  const addOosWindow = () => setOosWindows([...oosWindows, { start: '', end: '' }]);
   const updateOosWindow = (index, field, value) => {
     const newWindows = [...oosWindows];
     newWindows[index][field] = value;
     setOosWindows(newWindows);
   };
-
   const removeOosWindow = (index) => {
     const newWindows = [...oosWindows];
     newWindows.splice(index, 1);
@@ -177,7 +174,7 @@ export default function HexnetCLI() {
   return (
     <div style={{ padding: '30px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
-      {/* HEADER: Matching HexnetOriginal.pdf */}
+      {/* HEADER */}
       <div style={{ borderBottom: '1px solid var(--term-green)', paddingBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }} className="boot-seq-1">
         <div>
           <h1 style={{ margin: 0, fontSize: '24px', letterSpacing: '2px', color: 'var(--term-white)' }}>HEXNET REMOTE COMMAND</h1>
@@ -229,9 +226,7 @@ export default function HexnetCLI() {
       {activeTab === 'strategy' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="boot-seq-3">
           
-          {/* TOP BLOCK: Data Engine + Controls */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px' }}>
-            
             <div style={panelStyle}>
               <PanelHeader title="DATA ENGINE" />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', alignItems: 'end' }}>
@@ -257,9 +252,7 @@ export default function HexnetCLI() {
             </div>
           </div>
 
-          {/* MIDDLE BLOCK: Generator Constraints & Weights */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            
             <div style={panelStyle}>
               <PanelHeader title="GENERATOR CONFIGURATION" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -296,25 +289,19 @@ export default function HexnetCLI() {
                 <InputGroup label="WIN RATE"><input type="number" step="0.01" className="cli-input" value={wWinRate} onChange={(e) => setWWinRate(e.target.value)} /></InputGroup>
                 <InputGroup label="NET PNL"><input type="number" step="0.01" className="cli-input" value={wNetPnl} onChange={(e) => setWNetPnl(e.target.value)} /></InputGroup>
                 <InputGroup label="EXP VALUE"><input type="number" step="0.01" className="cli-input" value={wExpValue} onChange={(e) => setWExpValue(e.target.value)} /></InputGroup>
-                
                 <InputGroup label="TPD"><input type="number" step="0.01" className="cli-input" value={wTpd} onChange={(e) => setWTpd(e.target.value)} /></InputGroup>
                 <InputGroup label="TPD RET"><input type="number" step="0.01" className="cli-input" value={wTpdRet} onChange={(e) => setWTpdRet(e.target.value)} /></InputGroup>
                 <InputGroup label="SHARPE"><input type="number" step="0.01" className="cli-input" value={wSharpe} onChange={(e) => setWSharpe(e.target.value)} /></InputGroup>
-                
                 <InputGroup label="ALPHA"><input type="number" step="0.01" className="cli-input" value={wAlpha} onChange={(e) => setWAlpha(e.target.value)} /></InputGroup>
                 <InputGroup label="ADD (INV)"><input type="number" step="0.01" className="cli-input" value={wAddInv} onChange={(e) => setWAddInv(e.target.value)} /></InputGroup>
                 <InputGroup label="AVG LOSS(INV)"><input type="number" step="0.01" className="cli-input" value={wAvgLossInv} onChange={(e) => setWAvgLossInv(e.target.value)} /></InputGroup>
               </div>
             </div>
-
           </div>
 
-          {/* LOWER BLOCK: Timeline + Advanced Logic Constraints */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            
             <div style={panelStyle}>
               <PanelHeader title="DYNAMIC TIMELINE CONTROLS" />
-              
               <div style={{ marginBottom: '15px' }}>
                 <div style={{ fontSize: '11px', color: 'var(--term-cyan)', marginBottom: '5px' }}>IN-SAMPLE WINDOW</div>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -322,15 +309,13 @@ export default function HexnetCLI() {
                   <input type="date" className="cli-input" style={{ width: '50%' }} value={inSampleEnd} onChange={(e) => setInSampleEnd(e.target.value)} />
                 </div>
               </div>
-
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--term-cyan)' }}>OUT-OF-SAMPLE (OOS) WINDOWS</span>
                   <button onClick={addOosWindow} style={{ background: 'none', border: 'none', color: 'var(--term-green)', cursor: 'pointer', fontSize: '12px' }}>[+ ADD WINDOW]</button>
                 </div>
-                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '5px' }}>
-                  {oosWindows.map((win, idx) => (
+                  {(Array.isArray(oosWindows) ? oosWindows : []).map((win, idx) => (
                     <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       <span style={{ color: 'var(--term-muted)', fontSize: '10px' }}>{idx + 1}.</span>
                       <input type="date" className="cli-input" style={{ width: '45%' }} value={win.start} onChange={(e) => updateOosWindow(idx, 'start', e.target.value)} />
@@ -338,7 +323,6 @@ export default function HexnetCLI() {
                       <button onClick={() => removeOosWindow(idx)} style={{ background: 'none', border: 'none', color: 'var(--term-red)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
                     </div>
                   ))}
-                  {oosWindows.length === 0 && <span style={{ fontSize: '11px', color: 'var(--term-muted)' }}>NO OOS WINDOWS ACTIVE.</span>}
                 </div>
               </div>
             </div>
@@ -364,18 +348,15 @@ export default function HexnetCLI() {
                     <input type="number" step="0.1" className="cli-input" style={{ width: '50%' }} value={slMax} onChange={(e) => setSlMax(e.target.value)} />
                   </div>
                 </InputGroup>
-
                 <InputGroup label="MAX GATES"><input type="number" className="cli-input" value={maxGates} onChange={(e) => setMaxGates(e.target.value)} /></InputGroup>
                 <InputGroup label="IDEAL TPD"><input type="number" step="0.1" className="cli-input" value={idealTpd} onChange={(e) => setIdealTpd(e.target.value)} /></InputGroup>
                 <InputGroup label="MIN TPD"><input type="number" step="0.1" className="cli-input" value={minTpd} onChange={(e) => setMinTpd(e.target.value)} /></InputGroup>
               </div>
             </div>
-
           </div>
 
-          {/* MASSIVE CSV TABLE BLOCK */}
           <div style={panelStyle}>
-            <PanelHeader title={`CACHED RESULTS MATRIX (${csvData.length} RECORDS)`} />
+            <PanelHeader title={`CACHED RESULTS MATRIX (${Array.isArray(csvData) ? csvData.length : 0} RECORDS)`} />
             <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                 <thead style={{ position: 'sticky', top: 0, background: '#030303', zIndex: 1 }}>
@@ -392,7 +373,7 @@ export default function HexnetCLI() {
                   </tr>
                 </thead>
                 <tbody>
-                  {csvData.length === 0 ? (
+                  {!Array.isArray(csvData) || csvData.length === 0 ? (
                     <tr><td colSpan="9" style={{ padding: '30px', color: 'var(--term-muted)', textAlign: 'center' }}>{"/* DATA STREAM VACANT */"}</td></tr>
                   ) : (
                     csvData.map((row, index) => (
@@ -400,11 +381,11 @@ export default function HexnetCLI() {
                         <td style={{ padding: '10px', color: 'var(--term-cyan)' }}>{row.ID || `STRAT_${index}`}</td>
                         <td style={{ padding: '10px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontStyle: 'italic', color: 'var(--term-muted)' }}>{row.Logic || 'N/A'}</td>
                         <td style={{ padding: '10px' }}><Sparkline data={row.EquityCurve || row.Trades} color={row.Passed === true || row.Passed === 'true' ? 'var(--term-green)' : 'var(--term-red)'} /></td>
-                        <td style={{ padding: '10px', fontWeight: 'bold' }}>{row.CompositeScore !== undefined ? row.CompositeScore.toFixed(2) : (row.Score !== undefined ? row.Score.toFixed(2) : 'N/A')}</td>
-                        <td style={{ padding: '10px' }}>{row.WinRate !== undefined ? `${row.WinRate.toFixed(1)}%` : (row.WR !== undefined ? `${row.WR.toFixed(1)}%` : 'N/A')}</td>
-                        <td style={{ padding: '10px' }}>{row.PF !== undefined ? `PF: ${row.PF.toFixed(2)}` : `DD: $${row.AverageDD?.toFixed(0) || 'N/A'}`}</td>
-                        <td style={{ padding: '10px', color: 'var(--term-green)' }}>{row.TPD_Ret !== undefined ? `${row.TPD_Ret.toFixed(1)}%` : 'N/A'}</td>
-                        <td style={{ padding: '10px', color: 'var(--term-cyan)' }}>{row.WFE !== undefined ? `${row.WFE.toFixed(1)}%` : 'N/A'}</td>
+                        <td style={{ padding: '10px', fontWeight: 'bold' }}>{row.CompositeScore != null ? safeNum(row.CompositeScore, 2) : safeNum(row.Score, 2)}</td>
+                        <td style={{ padding: '10px' }}>{row.WinRate != null ? `${safeNum(row.WinRate, 1)}%` : (row.WR != null ? `${safeNum(row.WR, 1)}%` : 'N/A')}</td>
+                        <td style={{ padding: '10px' }}>{row.PF != null ? `PF: ${safeNum(row.PF, 2)}` : `DD: $${safeNum(row.AverageDD, 0)}`}</td>
+                        <td style={{ padding: '10px', color: 'var(--term-green)' }}>{row.TPD_Ret != null ? `${safeNum(row.TPD_Ret, 1)}%` : 'N/A'}</td>
+                        <td style={{ padding: '10px', color: 'var(--term-cyan)' }}>{row.WFE != null ? `${safeNum(row.WFE, 1)}%` : 'N/A'}</td>
                         <td style={{ padding: '10px', fontWeight: 'bold', color: row.Passed === true || row.Passed === 'true' ? 'var(--term-green)' : 'var(--term-red)' }}>{row.Passed === true || row.Passed === 'true' ? 'PASS' : 'FAIL'}</td>
                       </tr>
                     ))
