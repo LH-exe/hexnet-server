@@ -55,7 +55,7 @@ const FullCanvasGraph = ({ data, strategyName }) => {
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#00f0ff', background: '#020406', padding: '2px 4px', borderBottom: '1px solid #152233', fontWeight: 'bold', marginBottom: '4px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#00f0ff', background: '#020406', padding: '4px 6px', borderBottom: '1px solid #152233', fontWeight: 'bold', marginBottom: '8px', flexShrink: 0 }}>
         <span>ID: {row.Name}</span>
         <span>SHARPE: {row.Sharpe?.toFixed(2)} | PNL: ${row.PnL?.toFixed(2)}</span>
       </div>
@@ -77,7 +77,7 @@ const FullCanvasGraph = ({ data, strategyName }) => {
             return (
               <g key={`h-${pct}`}>
                 <line x1={padLeft} y1={y} x2={100 - padRight} y2={y} stroke="#101a26" strokeWidth="0.25" strokeDasharray="1 1" />
-                <text x={padLeft - 2} y={y + 1} fill="#526685" fontSize="2.8" textAnchor="end" fontWeight="bold">
+                <text x={padLeft - 2} y={y + 1} fill="#526685" fontSize="3.2" fontBar="monospace" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="end">
                   {val >= 1000 || val <= -1000 ? `${(val / 1000).toFixed(1)}k` : val.toFixed(0)}
                 </text>
               </g>
@@ -94,7 +94,7 @@ const FullCanvasGraph = ({ data, strategyName }) => {
             const x = padLeft + (pct / 100) * graphW;
             const indexMarker = Math.round((pct / 100) * (totalPoints - 1));
             return (
-              <text key={`x-${pct}`} x={x} y={100 - 1} fill="#526685" fontSize="2.8" textAnchor="middle" fontWeight="bold">
+              <text key={`x-${pct}`} x={x} y={100 - 1} fill="#526685" fontSize="3.2" fontBar="monospace" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="middle">
                 #{indexMarker}
               </text>
             );
@@ -609,38 +609,48 @@ export default function Home() {
         {activeTab === 'backtester' && (
           <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px' }}>
             
-            {/* EXPANDED SYSTEM NATIVE MULTI-SELECT ASSIGNMENT PANEL */}
-            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
+            {/* EXPANDED CONTROL MODULE: RE-ENGINEERED PERSISTENT SELECTION MATRIX VIEWPORT */}
+            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', height: '490px', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
                 <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
-                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Assign dynamic node matrices to run historical verification across the cluster.</p>
+                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Assign dynamic node matrices to run historical verification across the cluster loop.</p>
                 
-                {/* RE-INSTATED NATIVE MULTI-SELECT WITH TALL HEIGHT BOUNDS */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK (CTRL / CMD + CLICK TO MULTI-SELECT)</label>
-                  <select 
-                    multiple
-                    value={cmd.active_strats || []}
-                    onChange={(e) => {
-                      const options = e.target.options;
-                      const values = [];
-                      for (let i = 0; i < options.length; i++) {
-                        if (options[i].selected) values.push(options[i].value);
-                      }
-                      sendCommand({ active_strats: values });
-                    }}
-                    style={{ width: '100%', height: '280px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px', fontSize: '12px', lineHeight: '1.6', outline: 'none' }}
-                  >
+                {/* --- PURE REACT CHECKLIST VIEWPORT ENGINE (ZERO BLUR SIDE EFFECTS) --- */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minHeight: 0, marginBottom: '10px' }}>
+                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK (CLICK TO SELECT / TOGGLE NODE ENTRANCES)</label>
+                  <div style={{ width: '100%', flex: 1, background: '#070b11', border: '1px solid var(--term-border)', overflowY: 'auto', padding: '2px' }}>
                     {cmd.available_strats && cmd.available_strats.length > 0 ? (
-                      cmd.available_strats.map((strat, i) => (
-                        <option key={i} value={strat} style={{ padding: '6px 4px', background: '#070b11' }}>
-                          {cmd.active_strats?.includes(strat) ? '► VEC::' : '  MAT::'}{strat}
-                        </option>
-                      ))
+                      cmd.available_strats.map((strat, i) => {
+                        const isSelected = cmd.active_strats?.includes(strat);
+                        return (
+                          <div 
+                            key={i}
+                            onClick={() => handleToggleStrategy(strat)}
+                            style={{ 
+                              padding: '8px 10px', 
+                              fontSize: '12px', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px', 
+                              borderBottom: '1px solid #0c121c', 
+                              background: isSelected ? 'rgba(0, 240, 255, 0.06)' : 'transparent', 
+                              color: isSelected ? '#00f0ff' : '#cbd5e1',
+                              userSelect: 'none',
+                              fontWeight: isSelected ? '700' : '400'
+                            }}
+                          >
+                            <span style={{ color: isSelected ? '#00f0ff' : '#526685', fontSize: '10px', width: '14px' }}>
+                              {isSelected ? '►' : '▫'}
+                            </span>
+                            <span>{strat}</span>
+                          </div>
+                        );
+                      })
                     ) : (
-                      <option disabled style={{ color: '#526685', padding: '6px' }}>AWAITING DESKTOP ARRAYS MATRIX FLOW...</option>
+                      <div style={{ color: '#526685', padding: '12px', fontSize: '11px' }}>AWAITING DESKTOP SYSTEM RAM MATRIX INSTANCES FLOW...</div>
                     )}
-                  </select>
+                  </div>
                 </div>
               </div>
 
@@ -649,19 +659,19 @@ export default function Home() {
                 onClick={startBacktest}
                 disabled={!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running'}
                 style={{ 
-                  padding: '8px 16px', fontSize: '12px',
+                  padding: '10px 20px', fontSize: '12px',
                   backgroundColor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#0c121c' : '#00ff66', 
                   color: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#526685' : '#020406', 
-                  border: 'none', cursor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? 'not-allowed' : 'pointer', fontWeight: '700', alignSelf: 'flex-start', width: 'auto', marginTop: '14px'
+                  border: 'none', cursor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? 'not-allowed' : 'pointer', fontWeight: '700', alignSelf: 'flex-start', width: 'auto', flexShrink: 0
                 }}
               >
                 {cmd.engine_status === 'running' ? 'CLUSTER OCCUPIED...' : '[RUN BACKTEST MATCH]'}
               </button>
             </div>
 
-            {/* HIGH-SCALE COORDINATE DISPLAY VISUAL CANVAS GRAPH (TALL & LEGIBLE) */}
-            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px' }}>
+            {/* EXPANDED GRAPH MONITOR VISUAL CANVAS CARD (TALL, SCALED, & COMPACT GRAPH) */}
+            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', height: '490px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px', flexShrink: 0 }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
                 
                 {/* Dynamic Strategy Selector Dropdown for Graph Scaling */}
@@ -678,8 +688,8 @@ export default function Home() {
                 )}
               </div>
               
-              {/* TALL CONTAINER ENSURES VECTOR GRAPH HAS ROOM TO BREATHE */}
-              <div style={{ height: '280px', position: 'relative', border: '1px dashed var(--term-border)', padding: '6px', overflow: 'hidden' }}>
+              {/* MAXIMIZED INNER BOUNDS ALLOWS VECTOR GRAPH TO GRACEFULLY OCCUPY VACANT WORKSPACE */}
+              <div style={{ flex: 1, position: 'relative', border: '1px dashed var(--term-border)', padding: '8px 6px 4px 6px', overflow: 'hidden' }}>
                 {data && data.length > 0 ? (
                   <FullCanvasGraph data={data} strategyName={selectedBacktestStrat || data[0]?.Name} />
                 ) : (
