@@ -21,7 +21,7 @@ const Sparkline = ({ data, color }) => {
   );
 };
 
-// --- Overhauled Functional Strategy Equity Analytics Canvas Graph (FIXED OVERFLOW) ---
+// --- Overhauled Functional Strategy Equity Analytics Canvas Graph (UN-SQUASHED HEIGHT) ---
 const FullCanvasGraph = ({ data, strategyName }) => {
   if (!data || data.length === 0) return <span style={{ color: '#526685', fontSize: '11px' }}>[NO TRANSMISSION DATA RECORDED]</span>;
   
@@ -111,7 +111,6 @@ const FullCanvasGraph = ({ data, strategyName }) => {
 export default function Home() {
   const [data, setData] = useState([]);
   const [lastUpdate, setLastUpdate] = useState("CONNECTING...");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedBacktestStrat, setSelectedBacktestStrat] = useState("");
   
   const isFirstLoad = useRef(true); 
@@ -316,13 +315,13 @@ export default function Home() {
 
       {/* MAIN NAVIGATION WORKSPACE TABS */}
       <div className="animate-cascade seq-1" style={{ display: 'flex', borderBottom: '1px solid var(--term-border)', marginBottom: '16px', gap: '4px' }}>
-        <button onClick={() => { setActiveTab('portfolio'); setDropdownOpen(false); }} style={{ padding: '10px 20px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'portfolio' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
+        <button onClick={() => { setActiveTab('portfolio'); }} style={{ padding: '10px 20px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'portfolio' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'portfolio' ? '■ ' : ''}[PORTFOLIO_PERFORMANCE]
         </button>
-        <button onClick={() => { setActiveTab('generator'); setDropdownOpen(false); }} style={{ padding: '10px 20px', background: activeTab === 'generator' ? '#070b11' : 'transparent', color: activeTab === 'generator' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'generator' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
+        <button onClick={() => { setActiveTab('generator'); }} style={{ padding: '10px 20px', background: activeTab === 'generator' ? '#070b11' : 'transparent', color: activeTab === 'generator' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'generator' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'generator' ? '■ ' : ''}[STRATEGY_GENERATOR]
         </button>
-        <button onClick={() => { setActiveTab('backtester'); setDropdownOpen(false); }} style={{ padding: '10px 20px', background: activeTab === 'backtester' ? '#070b11' : 'transparent', color: activeTab === 'backtester' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'backtester' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
+        <button onClick={() => { setActiveTab('backtester'); }} style={{ padding: '10px 20px', background: activeTab === 'backtester' ? '#070b11' : 'transparent', color: activeTab === 'backtester' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'backtester' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'backtester' ? '■ ' : ''}[LIVE_BACKTESTER]
         </button>
       </div>
@@ -400,7 +399,7 @@ export default function Home() {
                 <div>
                   <h3 style={{ margin: 0, color: '#00f0ff', fontSize: '13px', fontWeight: '700' }}>[DATA_ROUTING_ENGINE]</h3>
                   <p style={{ margin: '2px 0 0 0', color: '#526685', fontSize: '11px' }}>
-                    TICKER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOW: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
+                    TICKER: <strong style={{ color: '#ffffff' }}>{cmd.data_ticker}</strong> | WINDOWS: <strong style={{ color: '#ffffff' }}>{cmd.data_start}</strong> TO <strong style={{ color: '#ffffff' }}>{cmd.data_end}</strong>
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -414,7 +413,7 @@ export default function Home() {
                       <option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#020406', padding: '8px', border: '1px solid var(--term-border)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>START_DATE</label>
                     <input type="date" value={cmd.fetch_start} onChange={(e) => sendCommand({ fetch_start: e.target.value })} style={{ padding: '4px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                   </div>
@@ -608,50 +607,40 @@ export default function Home() {
 
         {/* TAB 3: LIVE PERFORMANCE BACKTESTER */}
         {activeTab === 'backtester' && (
-          <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
+          <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px' }}>
             
-            {/* COMPACT MATRIX SELECTION CONTROL BOX */}
-            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+            {/* EXPANDED SYSTEM NATIVE MULTI-SELECT ASSIGNMENT PANEL */}
+            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
-                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Highlight node configurations from the engine buffer pool to cross-verify performance metrics.</p>
+                <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Assign dynamic node matrices to run historical verification across the cluster.</p>
                 
-                {/* TACTICAL DROPDOWN SELECTION SYSTEM (PREVENTS CLICK-AWAY RESETS) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px', position: 'relative' }}>
-                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK</label>
-                  <div 
-                    onClick={() => setDropdownOpen(!dropdownOpen)} 
-                    style={{ width: '100%', minHeight: '34px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
+                {/* RE-INSTATED NATIVE MULTI-SELECT WITH TALL HEIGHT BOUNDS */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK (CTRL / CMD + CLICK TO MULTI-SELECT)</label>
+                  <select 
+                    multiple
+                    value={cmd.active_strats || []}
+                    onChange={(e) => {
+                      const options = e.target.options;
+                      const values = [];
+                      for (let i = 0; i < options.length; i++) {
+                        if (options[i].selected) values.push(options[i].value);
+                      }
+                      sendCommand({ active_strats: values });
+                    }}
+                    style={{ width: '100%', height: '280px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px', fontSize: '12px', lineHeight: '1.6', outline: 'none' }}
                   >
-                    <span>
-                      {cmd.active_strats && cmd.active_strats.length > 0 
-                        ? `[ASSIGNED MODULES: ${cmd.active_strats.length}]` 
-                        : '[SELECT STRATEGY PROFILES]'}
-                    </span>
-                    <span style={{ fontSize: '10px', color: '#526685' }}>{dropdownOpen ? '▲' : '▼'}</span>
-                  </div>
-                  
-                  {dropdownOpen && (
-                    <div style={{ position: 'absolute', top: '54px', left: 0, right: 0, background: '#020406', border: '1px solid var(--term-border)', zIndex: 100, maxHeight: '180px', overflowY: 'auto', boxShadow: '0 6px 16px rgba(0,0,0,0.8)' }}>
-                      {cmd.available_strats && cmd.available_strats.length > 0 ? (
-                        cmd.available_strats.map((strat, i) => {
-                          const isSelected = cmd.active_strats?.includes(strat);
-                          return (
-                            <div 
-                              key={i}
-                              onClick={(e) => { e.stopPropagation(); handleToggleStrategy(strat); }}
-                              style={{ padding: '8px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #0c121c', background: isSelected ? 'rgba(0, 240, 255, 0.05)' : 'transparent', color: isSelected ? '#00f0ff' : '#cbd5e1' }}
-                            >
-                              <input type="checkbox" checked={isSelected || false} readOnly style={{ accentColor: '#00f0ff', cursor: 'pointer' }} />
-                              <span>{strat}</span>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ color: '#526685', padding: '12px', fontSize: '11px' }}>AWAITING DESKTOP STATE OVERFLOW ARRAYS...</div>
-                      )}
-                    </div>
-                  )}
+                    {cmd.available_strats && cmd.available_strats.length > 0 ? (
+                      cmd.available_strats.map((strat, i) => (
+                        <option key={i} value={strat} style={{ padding: '6px 4px', background: '#070b11' }}>
+                          {cmd.active_strats?.includes(strat) ? '► VEC::' : '  MAT::'}{strat}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled style={{ color: '#526685', padding: '6px' }}>AWAITING DESKTOP ARRAYS MATRIX FLOW...</option>
+                    )}
+                  </select>
                 </div>
               </div>
 
@@ -663,14 +652,14 @@ export default function Home() {
                   padding: '8px 16px', fontSize: '12px',
                   backgroundColor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#0c121c' : '#00ff66', 
                   color: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? '#526685' : '#020406', 
-                  border: 'none', cursor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? 'not-allowed' : 'pointer', fontWeight: '700', alignSelf: 'flex-start', width: 'auto', marginTop: '12px'
+                  border: 'none', cursor: (!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running') ? 'not-allowed' : 'pointer', fontWeight: '700', alignSelf: 'flex-start', width: 'auto', marginTop: '14px'
                 }}
               >
                 {cmd.engine_status === 'running' ? 'CLUSTER OCCUPIED...' : '[RUN BACKTEST MATCH]'}
               </button>
             </div>
 
-            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS (STRICT CONTAINER BOUNDED HEIGHT CONFIGURATION) */}
+            {/* HIGH-SCALE COORDINATE DISPLAY VISUAL CANVAS GRAPH (TALL & LEGIBLE) */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
@@ -688,7 +677,9 @@ export default function Home() {
                   </select>
                 )}
               </div>
-              <div style={{ height: '175px', position: 'relative', border: '1px dashed var(--term-border)', padding: '6px', overflow: 'hidden' }}>
+              
+              {/* TALL CONTAINER ENSURES VECTOR GRAPH HAS ROOM TO BREATHE */}
+              <div style={{ height: '280px', position: 'relative', border: '1px dashed var(--term-border)', padding: '6px', overflow: 'hidden' }}>
                 {data && data.length > 0 ? (
                   <FullCanvasGraph data={data} strategyName={selectedBacktestStrat || data[0]?.Name} />
                 ) : (
@@ -710,7 +701,7 @@ export default function Home() {
           <div className="animate-cascade seq-2" style={{ marginTop: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <span style={{ fontSize: '11px', color: '#526685', fontWeight: '700' }}>
-                {activeTab === 'generator' ? '[GENERATED_STRATEGY_LOG]' : '[BACKTEST_RESULTS_LOG]'}
+                {activeTab === 'generator' ? '[Generated_strategy_Log]' : '[Backtest Results Log]'}
               </span>
               <span style={{ fontSize: '10px', color: '#152233', fontWeight: 'bold' }}>MAX_LOG_ENTRIES_260</span>
             </div>
