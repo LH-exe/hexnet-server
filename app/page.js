@@ -21,7 +21,7 @@ const Sparkline = ({ data, color }) => {
   );
 };
 
-// --- Overhauled Functional Strategy Equity Analytics Canvas Graph ---
+// --- Overhauled Functional Strategy Equity Analytics Canvas Graph (FIXED OVERFLOW) ---
 const FullCanvasGraph = ({ data, strategyName }) => {
   if (!data || data.length === 0) return <span style={{ color: '#526685', fontSize: '11px' }}>[NO TRANSMISSION DATA RECORDED]</span>;
   
@@ -37,11 +37,10 @@ const FullCanvasGraph = ({ data, strategyName }) => {
   const range = max - min === 0 ? 1 : max - min;
   const totalPoints = parsedData.length;
 
-  // Compact, explicit viewport padding parameters to host grid labels
   const padLeft = 14;
   const padRight = 4;
-  const padTop = 8;
-  const padBottom = 12;
+  const padTop = 6;
+  const padBottom = 10;
   
   const graphW = 100 - padLeft - padRight;
   const graphH = 100 - padTop - padBottom;
@@ -55,14 +54,13 @@ const FullCanvasGraph = ({ data, strategyName }) => {
   const zeroY = padTop + graphH - ((0 - min) / range) * graphH;
 
   return (
-    <div style={{ width: '100%', height: '175px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      {/* High-detail modular diagnostic readouts heading banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#00f0ff', background: '#020406', padding: '3px 6px', borderBottom: '1px solid #152233', fontWeight: 'bold', marginBottom: '6px' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#00f0ff', background: '#020406', padding: '2px 4px', borderBottom: '1px solid #152233', fontWeight: 'bold', marginBottom: '4px', flexShrink: 0 }}>
         <span>ID: {row.Name}</span>
-        <span>SHARPE: {row.Sharpe?.toFixed(2)} | NET_PNL: ${row.PnL?.toFixed(2)} | MAX: ${max.toFixed(0)}</span>
+        <span>SHARPE: {row.Sharpe?.toFixed(2)} | PNL: ${row.PnL?.toFixed(2)}</span>
       </div>
       
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
           {/* Vertical Matrix Grid Intervals */}
           {[0, 25, 50, 75, 100].map((pct) => {
@@ -96,7 +94,7 @@ const FullCanvasGraph = ({ data, strategyName }) => {
             const x = padLeft + (pct / 100) * graphW;
             const indexMarker = Math.round((pct / 100) * (totalPoints - 1));
             return (
-              <text key={`x-${pct}`} x={x} y={100 - 2} fill="#526685" fontSize="2.8" textAnchor="middle" fontWeight="bold">
+              <text key={`x-${pct}`} x={x} y={100 - 1} fill="#526685" fontSize="2.8" textAnchor="middle" fontWeight="bold">
                 #{indexMarker}
               </text>
             );
@@ -416,7 +414,7 @@ export default function Home() {
                       <option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#020406', padding: '8px', border: '1px solid var(--term-border)' }}>
                     <label style={{ fontSize: '9px', color: '#526685', fontWeight: '700' }}>START_DATE</label>
                     <input type="date" value={cmd.fetch_start} onChange={(e) => sendCommand({ fetch_start: e.target.value })} style={{ padding: '4px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)' }} />
                   </div>
@@ -672,7 +670,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS */}
+            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS (STRICT CONTAINER BOUNDED HEIGHT CONFIGURATION) */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
@@ -690,15 +688,17 @@ export default function Home() {
                   </select>
                 )}
               </div>
-              <div style={{ flex: 1, position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px' }}>
+              <div style={{ height: '175px', position: 'relative', border: '1px dashed var(--term-border)', padding: '6px', overflow: 'hidden' }}>
                 {data && data.length > 0 ? (
                   <FullCanvasGraph data={data} strategyName={selectedBacktestStrat || data[0]?.Name} />
                 ) : (
-                  <span style={{ color: '#526685', fontSize: '11px', padding: '10px', textAlign: 'center' }}>
-                    [AWAITING RUN CLUSTER TRIGGER COMMAND VALIDATION]
-                  </span>
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#526685', fontSize: '11px', padding: '10px', textAlign: 'center' }}>
+                      [AWAITING RUN CLUSTER TRIGGER COMMAND VALIDATION]
+                    </span>
+                  </div>
                 )}
-                <div style={{ position: 'absolute', bottom: '4px', right: '6px', fontSize: '8px', color: '#152233', pointerEvents: 'none' }}>NODE_GRAPH_2D</div>
+                <div style={{ position: 'absolute', bottom: '4px', right: '6px', fontSize: '8px', color: '#152233', pointerEvents: 'none', zIndex: 10 }}>NODE_GRAPH_2D</div>
               </div>
             </div>
 
