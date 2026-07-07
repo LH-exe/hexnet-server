@@ -711,7 +711,7 @@ export default function Home() {
           <div className="animate-cascade seq-2" style={{ marginTop: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <span style={{ fontSize: '11px', color: '#526685', fontWeight: '700' }}>
-                {activeTab === 'generator' ? '[Generated_strategy_Log]' : '[Backtest Results Log]'}
+                {activeTab === 'generator' ? '[Generated Strategy Log]' : '[Backtest Results Log]'}
               </span>
               <span style={{ fontSize: '10px', color: '#152233', fontWeight: 'bold' }}>MAX_LOG_ENTRIES_260</span>
             </div>
