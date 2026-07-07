@@ -21,7 +21,7 @@ const Sparkline = ({ data, color }) => {
   );
 };
 
-// --- Functional Strategy Equity Analytics Canvas Graph ---
+// --- Overhauled Functional Strategy Equity Analytics Canvas Graph ---
 const FullCanvasGraph = ({ data, strategyName }) => {
   if (!data || data.length === 0) return <span style={{ color: '#526685', fontSize: '11px' }}>[NO TRANSMISSION DATA RECORDED]</span>;
   
@@ -35,21 +35,77 @@ const FullCanvasGraph = ({ data, strategyName }) => {
   const min = Math.min(...parsedData);
   const max = Math.max(...parsedData);
   const range = max - min === 0 ? 1 : max - min;
-  const points = parsedData.map((val, i) => `${(i / (parsedData.length - 1)) * 100},${100 - ((val - min) / range) * 100}`).join(' ');
-  const zeroY = 100 - ((0 - min) / range) * 100;
+  const totalPoints = parsedData.length;
+
+  // Compact, explicit viewport padding parameters to host grid labels
+  const padLeft = 14;
+  const padRight = 4;
+  const padTop = 8;
+  const padBottom = 12;
+  
+  const graphW = 100 - padLeft - padRight;
+  const graphH = 100 - padTop - padBottom;
+
+  const points = parsedData.map((val, i) => {
+    const x = padLeft + (i / (totalPoints - 1)) * graphW;
+    const y = padTop + graphH - ((val - min) / range) * graphH;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const zeroY = padTop + graphH - ((0 - min) / range) * graphH;
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
-      <div style={{ position: 'absolute', top: '-2px', left: '0px', zIndex: 10, fontSize: '10px', color: '#00f0ff', background: '#020406', padding: '2px 6px', border: '1px solid #152233', fontWeight: 'bold' }}>
-        SELECTED: {row.Name} | SHARPE: {row.Sharpe?.toFixed(2)} | MAX: ${max.toLocaleString()}
+    <div style={{ width: '100%', height: '175px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {/* High-detail modular diagnostic readouts heading banner */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#00f0ff', background: '#020406', padding: '3px 6px', borderBottom: '1px solid #152233', fontWeight: 'bold', marginBottom: '6px' }}>
+        <span>ID: {row.Name}</span>
+        <span>SHARPE: {row.Sharpe?.toFixed(2)} | NET_PNL: ${row.PnL?.toFixed(2)} | MAX: ${max.toFixed(0)}</span>
       </div>
-      <svg viewBox="0 -5 100 110" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-        <line x1="0" y1="25" x2="100" y2="25" stroke="#101a26" strokeWidth="0.5" strokeDasharray="2" />
-        <line x1="0" y1="50" x2="100" y2="50" stroke="#101a26" strokeWidth="0.5" strokeDasharray="2" />
-        <line x1="0" y1="75" x2="100" y2="75" stroke="#101a26" strokeWidth="0.5" strokeDasharray="2" />
-        {min < 0 && max > 0 && <line x1="0" y1={zeroY} x2="100" y2={zeroY} stroke="#ffaa00" strokeDasharray="3" strokeWidth="0.75" />}
-        <polyline fill="none" stroke={row.PnL >= 0 ? '#00ff66' : '#ff3366'} strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter" points={points} />
-      </svg>
+      
+      <div style={{ flex: 1, position: 'relative' }}>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+          {/* Vertical Matrix Grid Intervals */}
+          {[0, 25, 50, 75, 100].map((pct) => {
+            const x = padLeft + (pct / 100) * graphW;
+            return (
+              <line key={`v-${pct}`} x1={x} y1={padTop} x2={x} y2={padTop + graphH} stroke="#101a26" strokeWidth="0.25" strokeDasharray="1 1" />
+            );
+          })}
+
+          {/* Horizontal Matrix Grid Lines & Dynamic Precise Data Labels */}
+          {[0, 25, 50, 75, 100].map((pct) => {
+            const y = padTop + (pct / 100) * graphH;
+            const val = max - (pct / 100) * range;
+            return (
+              <g key={`h-${pct}`}>
+                <line x1={padLeft} y1={y} x2={100 - padRight} y2={y} stroke="#101a26" strokeWidth="0.25" strokeDasharray="1 1" />
+                <text x={padLeft - 2} y={y + 1} fill="#526685" fontSize="2.8" textAnchor="end" fontWeight="bold">
+                  {val >= 1000 || val <= -1000 ? `${(val / 1000).toFixed(1)}k` : val.toFixed(0)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Calibrated Equity Delta Baseline Marker */}
+          {min < 0 && max > 0 && zeroY >= padTop && zeroY <= padTop + graphH && (
+            <line x1={padLeft} y1={zeroY} x2={100 - padRight} y2={zeroY} stroke="#ffaa00" strokeWidth="0.4" strokeDasharray="2 1" opacity="0.65" />
+          )}
+
+          {/* Trade Progression Horizontal Step Markers */}
+          {[0, 25, 50, 75, 100].map((pct) => {
+            const x = padLeft + (pct / 100) * graphW;
+            const indexMarker = Math.round((pct / 100) * (totalPoints - 1));
+            return (
+              <text key={`x-${pct}`} x={x} y={100 - 2} fill="#526685" fontSize="2.8" textAnchor="middle" fontWeight="bold">
+                #{indexMarker}
+              </text>
+            );
+          })}
+
+          {/* Rugged High-Resolution Canvas Metric Polyline Vector */}
+          <polyline fill="none" stroke={row.PnL >= 0 ? '#00ff66' : '#ff3366'} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" points={points} />
+        </svg>
+      </div>
     </div>
   );
 };
@@ -556,18 +612,18 @@ export default function Home() {
         {activeTab === 'backtester' && (
           <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
             
-            {/* COMPACT MATRIX SELECTION DECK WITH FIXED DROPDOWN CHECKLIST LAYOUT */}
+            {/* COMPACT MATRIX SELECTION CONTROL BOX */}
             <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
               <div>
                 <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
                 <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Highlight node configurations from the engine buffer pool to cross-verify performance metrics.</p>
                 
-                {/* --- TACTICAL DROPDOWN SELECTION SYSTEM (PREVENTS CLICK-AWAY RESETS) --- */}
+                {/* TACTICAL DROPDOWN SELECTION SYSTEM (PREVENTS CLICK-AWAY RESETS) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px', position: 'relative' }}>
                   <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK</label>
                   <div 
                     onClick={() => setDropdownOpen(!dropdownOpen)} 
-                    style={{ width: '100%', minHeight: '34px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignBars: 'center', alignItems: 'center', userSelect: 'none' }}
+                    style={{ width: '100%', minHeight: '34px', background: '#070b11', color: '#00f0ff', border: '1px solid var(--term-border)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
                   >
                     <span>
                       {cmd.active_strats && cmd.active_strats.length > 0 
@@ -616,7 +672,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* FULLY FUNCTIONAL DEDICATED GRAPH MONITOR VISUAL CANVAS */}
+            {/* INTEGRATED GRAPH MATRIX DISPLAY CANVAS */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px' }}>
                 <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
@@ -634,7 +690,7 @@ export default function Home() {
                   </select>
                 )}
               </div>
-              <div style={{ flex: 1, minHeight: '200px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 4px 4px 4px' }}>
+              <div style={{ flex: 1, position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px' }}>
                 {data && data.length > 0 ? (
                   <FullCanvasGraph data={data} strategyName={selectedBacktestStrat || data[0]?.Name} />
                 ) : (
