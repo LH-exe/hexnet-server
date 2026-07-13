@@ -298,29 +298,30 @@ export default function Home() {
       {/* CORE WORKSPACE INTERACTIVE HUB CONTAINER */}
       <div style={{ backgroundColor: '#070b11', border: '1px solid #152233', padding: '16px', minHeight: '450px' }}>
         
-        {/* TAB 1: PORTFOLIO MAIN PERFORMANCE WORKSPACE (SURGICALLY OVERHAULED & ANIMATED) */}
+        {/* TAB 1: PORTFOLIO MAIN PERFORMANCE WORKSPACE (OVERHAULED, ANIMATED & FULLY LOADED) */}
         {activeTab === 'portfolio' && (
-          <div key="viewport-portfolio" className="space-y-6 animate-fade-in" style={{ animation: 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}>
+          <div key="viewport-portfolio" style={{ animation: 'portfolioFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards' }} className="space-y-4">
             
-            {/* INJECTED CSS FOR HARDWARE ACCELERATED FADE-IN TRANSITIONS */}
+            {/* INJECTED CSS FOR SECURE ACCELERATED OPACITY TRANSITION INTERFACES */}
             <style jsx global>{`
-              @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+              @keyframes portfolioFadeIn {
+                from { opacity: 0; transform: translateY(3px); filter: blur(1px); }
                 to { opacity: 1; transform: translateY(0); filter: blur(0); }
               }
-              .animate-fade-in { opacity: 0; }
             `}</style>
 
-            {/* Tradeify Advanced Real-Time Configuration Matrix Card */}
+            {/* Tradeify Execution Control Overlay Grid Card */}
             <div style={{ background: '#04070a', border: '1px solid #152233', padding: '16px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #152233', paddingBottom: '12px', marginBottom: '16px', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ width: '10px', height: '10px', display: 'inline-block', backgroundColor: cmd.live_trading_enabled ? '#00ff66' : '#ff3366', borderRadius: '50%', boxShadow: cmd.live_trading_enabled ? '0 0 8px #00ff66' : 'none' }}></span>
-                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffffff', trackingSpacing: '0.5px' }}>TRADEIFY LIVEFIRE PIPELINE OVERRIDE MATRIX</span>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffffff', trackingSpacing: '0.5px' }}>TRADEIFY LIVE SYSTEM PIPELINE GATEWAY</span>
                 </div>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center', fontSize: '11px', fontFamily: 'Fira Code, monospace' }}>
+                  
+                  {/* FIXED: Added Live Strategy Selector on the Website Dashboard Tab */}
                   <div>
-                    <span style={{ color: '#526685' }}>ROUTED STRATEGY: </span>
+                    <span style={{ color: '#526685' }}>ROUTED ENGINE STRATEGY: </span>
                     <select value={cmd.active_live_strategy || 'None Locked'} onChange={(e) => sendCommand({ active_live_strategy: e.target.value })} style={{ background: '#0c121c', color: '#00f0ff', border: '1px solid #152233', padding: '4px', fontWeight: 'bold', fontFamily: 'Fira Code' }}>
                       <option value="None Locked">None Locked</option>
                       {(cmd.available_strats || []).map((s, idx) => <option key={idx} value={s}>{s}</option>)}
@@ -337,9 +338,9 @@ export default function Home() {
                 <div style={{ background: '#020406', border: '1px solid #152233', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none', fontWeight: 'bold', fontSize: '11px', color: cmd.live_trading_enabled ? '#00ff66' : '#ff3366', fontFamily: 'Fira Code' }}>
                     <input type="checkbox" checked={cmd.live_trading_enabled || false} onChange={(e) => sendCommand({ live_trading_enabled: e.target.checked, emergency_flatten_requested: false })} style={{ width: '15px', height: '14px', accentColor: '#00ff66' }} />
-                    {cmd.live_trading_enabled ? 'AUTOMATION LAYER RUNNING' : 'AUTOMATION LAYER MUTED'}
+                    Enable Live Trading
                   </label>
-                  <button onClick={() => sendCommand({ emergency_flatten_requested: true, live_trading_enabled: false, status: 'flatten_triggered' })} style={{ background: '#1c060e', color: '#ff3366', border: '1px solid #ff3366', padding: '8px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', fontFamily: 'Fira Code' }}>🚨 EMERGENCY FLATTEN CORE</button>
+                  <button onClick={() => sendCommand({ emergency_flatten_requested: true, live_trading_enabled: false, status: 'flatten_triggered' })} style={{ background: '#1c060e', color: '#ff3366', border: '1px solid #ff3366', padding: '8px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', fontFamily: 'Fira Code' }}>🚨 EMERGENCY FLATTEN ALL</button>
                 </div>
                 
                 {['def_contracts', 'loss_add', 'win_sub', 'contract_min', 'contract_max'].map((param) => (
@@ -348,13 +349,13 @@ export default function Home() {
                     <input type="number" value={cmd.live_scaling?.[param] ?? 0} onChange={(e) => {
                       const copy = { ...cmd.live_scaling }; copy[param] = parseInt(e.target.value) || 0;
                       sendCommand({ live_scaling: copy });
-                    }} style={{ width: '80%', background: '#0c121c', color: '#ffffff', border: '1px solid #152233', textAlign: 'center', padding: '4px', fontSize: '12px', fontWeight: 'bold' }} />
+                    }} style={{ width: '85%', background: '#0c121c', color: '#ffffff', border: '1px solid #152233', textAlign: 'center', padding: '4px', fontSize: '12px', fontWeight: 'bold' }} />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Independent Local File Calibration & Deduplication Engines Control Blocks */}
+            {/* Independent Local File Calibration & Deduplication Engines Controllers */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '15px' }}>
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px', fontFamily: 'Fira Code' }}>
                 <div style={{ color: '#00f0ff', fontSize: '11px', fontWeight: 'bold', borderBottom: '1px solid #152233', paddingBottom: '6px' }}>[1] NATIVE LOCAL SANDBOX DATABENTO CALIBRATOR</div>
@@ -362,56 +363,57 @@ export default function Home() {
                   <span style={{ fontSize: '9px', color: '#526685' }}>TARGET FILENAME FOR LOGICAL SLICE VARIANCE VERIFICATION:</span>
                   <input type="text" value={cmd.sandbox_csv_name || 'databento_mes.csv'} onChange={(e) => sendCommand({ sandbox_csv_name: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid #152233' }} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContext: 'space-between', marginTop: '5px' }}>
                   <button onClick={() => sendCommand({ status: 'sandbox_check_requested' })} disabled={cmd.engine_status === 'offline'} style={{ background: '#0c121c', color: '#ffaa00', border: '1px solid #ffaa00', padding: '6px 12px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>RUN TEST CHECKS</button>
                   <div style={{ textAlign: 'right', fontSize: '11px' }}>
-                    <span style={{ color: '#526685', display: 'block', fontSize: '9px' }}>CALIBRATION STATUS:</span>
+                    <span style={{ color: '#526685', display: 'block', fontSize: '9px' }}>CALIBRATION RESULT:</span>
                     <strong style={{ color: '#ffffff' }}>{cmd.sandbox_test_results}</strong>
                   </div>
                 </div>
               </div>
 
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px', fontFamily: 'Fira Code' }}>
-                <div style={{ color: '#00ff66', fontSize: '11px', fontWeight: 'bold', borderBottom: '1px solid #152233', paddingBottom: '6px' }}>[2] DEDUPLICATED RECORDER TICK CHANNELS APPEND ENGINE</div>
+                <div style={{ color: '#00ff66', fontSize: '11px', fontWeight: 'bold', borderBottom: '1px solid #152233', paddingBottom: '6px' }}>[2] DEDUPLICATED HISTORICAL FILE RECORDER</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '9px', color: '#526685' }}>APPEND TARGET LOCAL DISK RECORDS STORAGE PATH:</span>
+                  <span style={{ fontSize: '9px', color: '#526685' }}>APPEND SYSTEM TARGET LOCAL MASTER RECORDS STORAGE PATH:</span>
                   <input type="text" value={cmd.sync_target_csv || 'hexnet_master_bars.csv'} onChange={(e) => sendCommand({ sync_target_csv: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid #152233' }} />
                 </div>
                 <button onClick={() => sendCommand({ status: 'csv_sync_requested' })} disabled={cmd.engine_status === 'offline'} style={{ background: '#0c121c', color: '#00ff66', border: '1px solid #00ff66', padding: '6px 12px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', marginTop: '14px', alignSelf: 'flex-start' }}>EXECUTE MERGE APPEND PIPELINE</button>
               </div>
             </div>
 
-            {/* Core Account Balance Metrics Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+            {/* Core Account Balance Metrics Telemetry Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>NET_ACCOUNT_CASH_BALANCE</div>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>LIVE CAPITAL VALUATION</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: '#00ff66', marginTop: '4px' }}>$100,000.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>TRADEIFY PLATFORM ALLOCATION: 100K INSTANT</div>
               </div>
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>FLOATING_MARGINAL_OPEN_PNL</div>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>LIVE PNL</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: '#00f0ff', marginTop: '4px' }}>$0.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>ZERO EXCHANGE ORDERS ACTIVE ON WIRE</div>
               </div>
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>CRITICAL EOD MAX LOSS BARRIER LIMIT</div>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>TRADIFY EOD LIQUIDATION FLOOR</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffaa00', marginTop: '4px' }}>$96,000.00</div>
-                <div style={{ fontSize: '10px', color: '#ff3366', marginTop: '4px', fontWeight: 'bold' }}>MAX_EOD_TRAILING_CUSHION: $4,000</div>
+              </div>
+              <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>REALIZED PNL</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '4px' }}>$0.00</div>
               </div>
             </div>
 
-            {/* INTEGRATED GRAPH SPLITTER CHASSIS: STREAMS ACTIVE TRANSACTIONS & EQUITY CURVES */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px', marginTop: '10px' }}>
+            {/* FIXED: Restored Current Positions and Closed Positions Execution Tables Grid Panels */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px' }}>
               
-              {/* Box A: Real-Time Open & Executed Contract Tables Monitor */}
+              {/* Table A: Live Positions Monitor Card */}
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px', display: 'flex', flexDirection: 'column', height: '320px' }}>
-                <span style={{ color: '#00f0ff', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px' }}>[REALTIME_OPEN_POSITIONS_MONITOR]</span>
+                <span style={{ color: '#00f0ff', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px', fontFamily: 'Fira Code, monospace' }}>[REALTIME_OPEN_POSITIONS_MONITOR]</span>
                 <div style={{ overflowX: 'auto', flex: 1, border: '1px solid #0c121c' }}>
-                  <table style={{ width: '100%', textBar: 'left', borderCollapse: 'collapse', fontSize: '11px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', fontFamily: 'Fira Code, monospace' }}>
                     <thead>
-                      <tr style={{ background: '#0c121c', borderBottom: '1px solid #152233', color: '#526685' }}>
+                      <tr style={{ background: '#0c121c', borderBottom: '1px solid #152233', color: '#526685', textAlign: 'center' }}>
                         <th style={{ padding: '8px' }}>NODE</th>
-                        <th style={{ padding: '8px' }}>VECTOR</th>
+                        <th style={{ padding: '8px' }}>DIRECTION</th>
                         <th style={{ padding: '8px' }}>SIZE</th>
                         <th style={{ padding: '8px' }}>ENTRY</th>
                         <th style={{ padding: '8px' }}>MARKET</th>
@@ -419,19 +421,19 @@ export default function Home() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr style={{ borderBottom: '1px solid #0c121c', color: '#526685', textBar: 'center' }}>
-                        <td colSpan="6" style={{ padding: '40px 10px', textAlign: 'center' }}>&gt; NO LIVE POSITIONS CURRENTLY ALLOCATED IN THE API QUEUE</td>
+                      <tr style={{ borderBottom: '1px solid #0c121c', color: '#526685' }}>
+                        <td colSpan="6" style={{ padding: '40px 10px', textAlign: 'center' }}>&gt; NO LIVE POSITIONS ALLOCATED IN CORES QUEUE CHANNELS</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {/* Box B: real-Time Streaming Equity Canvas Chart */}
+              {/* FIXED: Restored Live Equity Performance Vector Graph Section Box */}
               <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px', display: 'flex', flexDirection: 'column', height: '320px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
-                  <span style={{ color: '#00ff66', fontWeight: 'bold' }}>[PORTFOLIO_EQUITY_FEED_REALTIME]</span>
-                  <span style={{ color: '#526685' }}>TRANSMISSION: SECURE</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px' }}>
+                  <span style={{ color: '#00ff66', fontWeight: 'bold', fontFamily: 'Fira Code, monospace' }}>[REAL-TIME_STREAMING_EQUITY_CANVAS]</span>
+                  <span style={{ color: '#526685', fontFamily: 'Fira Code, monospace' }}>LIVE FEED ACTIVE</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative', border: '1px dashed #152233', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px' }}>
                   {[102000, 100000, 98000].map((val) => (
@@ -442,23 +444,36 @@ export default function Home() {
                   ))}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '11px', color: '#526685', background: '#020406', padding: '6px 12px', border: '1px solid #152233' }}>
-                      &gt; STANDBY: DATASTREAM ARMED FOR TRADIFY API TICK LOGS CHANNELS
+                      &gt; STANDBY: DATASTREAM ARMED FOR REAL-TIME ACCOUNT BALANCE UPDATES
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* REALTIME SYSTEM STDOUT OUTPUT WRAPPER FEED */}
-            <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px' }}>
-              <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '10px' }}>LIVEFIRE_LOG_STREAM (STDOUT)</div>
-              <div style={{ fontSize: '12px', color: '#526685', lineHeight: '1.5', background: '#04070a', padding: '10px', border: '1px solid #152233', height: '110px', overflowY: 'auto' }}>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> Tradovate unified single-ticket bracket builders compiled.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[CORE]</span> Non-repeating data frame deduplication engines online.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Active live session tracking connected over Redis.</div>
-                <div><span className="pulse-glow" style={{ color: '#00ff66' }}>■</span></div>
+            {/* Table B: Closed Position Order Audit logs Box */}
+            <div style={{ background: '#020406', border: '1px solid #152233', padding: '14px', display: 'flex', flexDirection: 'column', height: '180px' }}>
+              <span style={{ color: '#ffaa00', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px', fontFamily: 'Fira Code, monospace' }}>[HISTORICAL_CLOSED_POSITIONS_AUDIT_LOG]</span>
+              <div style={{ overflowX: 'auto', flex: 1, border: '1px solid #0c121c' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', fontFamily: 'Fira Code, monospace' }}>
+                  <thead>
+                    <tr style={{ background: '#0c121c', borderBottom: '1px solid #152233', color: '#526685', textAlign: 'center' }}>
+                      <th style={{ padding: '6px' }}>TIMESTAMP</th>
+                      <th style={{ padding: '6px' }}>TARGET ASSET</th>
+                      <th style={{ padding: '6px' }}>ACTION TYPE</th>
+                      <th style={{ padding: '6px' }}>EXECUTION PRICE</th>
+                      <th style={{ padding: '6px' }}>REALIZED PNL ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #0c121c', color: '#526685' }}>
+                      <td colSpan="5" style={{ padding: '20px 10px', textAlign: 'center' }}>&gt; NO HISTORICAL RECONCILIATION DATA CURRENTLY WRITTEN TO CLOUD BUFFERS</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
+
           </div>
         )}
 
