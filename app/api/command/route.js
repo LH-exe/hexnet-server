@@ -40,8 +40,28 @@ const DEFAULT_STATE = {
   fetch_rth: true, fetch_pct: 0, is_start: '', is_end: '', oos_list: [{ start: '', end: '' }],
   hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }],
   lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: '',
-  auto: true, auto_max: 10, gen_count: 10, // <--- ADD THIS
-  debug_csv_data: []
+  gen_count: 10, debug_csv_data: [],
+
+  // --- TRADOVATE LIVE AUTOMATION MATRIX CORE ENVIRONMENT STATES ---
+  live_trading_enabled: false,
+  emergency_flatten_requested: false,
+  live_refresh_interval: 5,
+  active_live_strategy: 'None Locked',
+  tradovate_username: '',
+  tradovate_password: '',
+  tradovate_app_key: '',
+  tradovate_sec_key: '',
+  tradovate_environment: 'Demo',
+  live_scaling: {
+    def_contracts: 1,
+    loss_add: 0,
+    win_sub: 0,
+    contract_min: 1,
+    contract_max: 10
+  },
+  sandbox_csv_name: 'databento_mes.csv',
+  sandbox_test_results: 'AWAITING RUN SEQUENCE',
+  sync_target_csv: 'hexnet_master_bars.csv'
 };
 
 export async function GET() {
@@ -54,7 +74,7 @@ export async function GET() {
     const now = Date.now();
     if (now - (state.last_seen || 0) > 30000) {
       state.engine_status = 'offline';
-      if (['sync_requested', 'stop_requested', 'fetch_requested', 'backtest_requested'].includes(state.status)) {
+      if (['sync_requested', 'stop_requested', 'fetch_requested', 'backtest_requested', 'sandbox_check_requested', 'csv_sync_requested'].includes(state.status)) {
         state.status = 'idle';
       }
       await client.set('hexnet_command_state', JSON.stringify(state));
