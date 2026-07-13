@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
-// --- Safe SVG Individual Line Sparkline Renderer ---
 const Sparkline = ({ data, color }) => {
   let parsedData = [];
   try { parsedData = typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return <span style={{color: '#526685', fontSize: '11px'}}>ERR_DATA</span>; }
@@ -21,7 +20,6 @@ const Sparkline = ({ data, color }) => {
   );
 };
 
-// --- Overhauled Functional Strategy Equity Analytics Canvas Graph (UN-SQUASHED HEIGHT) ---
 const FullCanvasGraph = ({ data, strategyName }) => {
   if (!data || data.length === 0) return <span style={{ color: '#526685', fontSize: '11px' }}>[NO TRANSMISSION DATA RECORDED]</span>;
   
@@ -62,7 +60,6 @@ const FullCanvasGraph = ({ data, strategyName }) => {
       
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-          {/* Vertical Matrix Grid Intervals */}
           {[0, 25, 50, 75, 100].map((pct) => {
             const x = padLeft + (pct / 100) * graphW;
             return (
@@ -70,37 +67,33 @@ const FullCanvasGraph = ({ data, strategyName }) => {
             );
           })}
 
-          {/* Horizontal Matrix Grid Lines & Dynamic Precise Data Labels */}
           {[0, 25, 50, 75, 100].map((pct) => {
             const y = padTop + (pct / 100) * graphH;
             const val = max - (pct / 100) * range;
             return (
               <g key={`h-${pct}`}>
                 <line x1={padLeft} y1={y} x2={100 - padRight} y2={y} stroke="#101a26" strokeWidth="0.25" strokeDasharray="1 1" />
-                <text x={padLeft - 2} y={y + 1} fill="#526685" fontSize="3.2" fontBar="monospace" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="end">
+                <text x={padLeft - 2} y={y + 1} fill="#526685" fontSize="3.2" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="end">
                   {val >= 1000 || val <= -1000 ? `${(val / 1000).toFixed(1)}k` : val.toFixed(0)}
                 </text>
               </g>
             );
           })}
 
-          {/* Calibrated Equity Delta Baseline Marker */}
           {min < 0 && max > 0 && zeroY >= padTop && zeroY <= padTop + graphH && (
             <line x1={padLeft} y1={zeroY} x2={100 - padRight} y2={zeroY} stroke="#ffaa00" strokeWidth="0.4" strokeDasharray="2 1" opacity="0.65" />
           )}
 
-          {/* Trade Progression Horizontal Step Markers */}
           {[0, 25, 50, 75, 100].map((pct) => {
             const x = padLeft + (pct / 100) * graphW;
             const indexMarker = Math.round((pct / 100) * (totalPoints - 1));
             return (
-              <text key={`x-${pct}`} x={x} y={100 - 1} fill="#526685" fontSize="3.2" fontBar="monospace" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="middle">
+              <text key={`x-${pct}`} x={x} y={100 - 1} fill="#526685" fontSize="3.2" className="select-none" style={{ fontFamily: 'Fira Code', fontWeight: '700' }} textAnchor="middle">
                 #{indexMarker}
               </text>
             );
           })}
 
-          {/* Rugged High-Resolution Canvas Metric Polyline Vector */}
           <polyline fill="none" stroke={row.PnL >= 0 ? '#00ff66' : '#ff3366'} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" points={points} />
         </svg>
       </div>
@@ -116,6 +109,7 @@ export default function Home() {
   const isFirstLoad = useRef(true); 
   const previousStatus = useRef('offline');
   const [activeTab, setActiveTab] = useState('portfolio');
+  const [showLiveCredsDrawer, setShowLiveCredsDrawer] = useState(false);
 
   const [cmd, setCmd] = useState({
     status: 'idle', engine_status: 'offline', mode: 'Generate Random Strategies', strategy: '', sims: 1000, sort: 'Composite Score (Best Overall)', auto: true, auto_max: 10, available_strats: [], active_strats: [], 
@@ -126,7 +120,12 @@ export default function Home() {
     use_genetic: false, progress: 0, total_sims: 1000, eta: '--:--:--', sims_sec: 0, trade_progress: { current: 0, total: 0 },
     data_ticker: 'NONE', data_start: 'N/A', data_end: 'N/A', fetch_ticker: 'SPY', fetch_interval: '1m', fetch_start: '', fetch_end: '', fetch_rth: true, fetch_pct: 0,
     is_start: '', is_end: '', oos_list: [{ start: '', end: '' }], hv_start: '', hv_end: '', hv_oos_list: [{ start: '', end: '' }], lv_start: '', lv_end: '', lv_oos_list: [{ start: '', end: '' }], stage_text: '',
-    gen_count: 10, debug_csv_data: []
+    gen_count: 10, debug_csv_data: [],
+
+    live_trading_enabled: false, emergency_flatten_requested: false, live_refresh_interval: 5, active_live_strategy: 'None Locked',
+    tradovate_username: '', tradovate_password: '', tradovate_app_key: '', tradovate_sec_key: '', tradovate_environment: 'Demo',
+    live_scaling: { def_contracts: 1, loss_add: 0, win_sub: 0, contract_min: 1, contract_max: 10 },
+    sandbox_csv_name: 'databento_mes.csv', sandbox_test_results: 'AWAITING RUN SEQUENCE', sync_target_csv: 'hexnet_master_bars.csv'
   });
 
   useEffect(() => {
@@ -156,33 +155,11 @@ export default function Home() {
             }
             return {
               ...prev,
-              engine_status: jsonCmd.engine_status, progress: jsonCmd.progress, total_sims: jsonCmd.total_sims, 
-              eta: jsonCmd.eta, sims_sec: jsonCmd.sims_sec, data_ticker: jsonCmd.data_ticker, 
-              data_start: jsonCmd.data_start, data_end: jsonCmd.data_end, status: jsonCmd.status, 
-              fetch_pct: jsonCmd.fetch_pct, stage_text: jsonCmd.stage_text, auto_max: jsonCmd.auto_max,
-              gen_count: jsonCmd.gen_count !== undefined ? jsonCmd.gen_count : prev.gen_count,
+              ...jsonCmd,
+              live_scaling: jsonCmd.live_scaling || prev.live_scaling,
               trade_progress: jsonCmd.trade_progress || prev.trade_progress,
               available_strats: jsonCmd.available_strats || prev.available_strats,
               active_strats: jsonCmd.active_strats || prev.active_strats,
-              ideal_add: jsonCmd.ideal_add !== undefined ? jsonCmd.ideal_add : prev.ideal_add,
-              max_add: jsonCmd.max_add !== undefined ? jsonCmd.max_add : prev.max_add,
-              ideal_al: jsonCmd.ideal_al !== undefined ? jsonCmd.ideal_al : prev.ideal_al,
-              max_al: jsonCmd.max_al !== undefined ? jsonCmd.max_al : prev.max_al,
-              ideal_wr: jsonCmd.ideal_wr !== undefined ? jsonCmd.ideal_wr : prev.ideal_wr,
-              min_wr: jsonCmd.min_wr !== undefined ? jsonCmd.min_wr : prev.min_wr,
-              ideal_tpd_ret: jsonCmd.ideal_tpd_ret !== undefined ? jsonCmd.ideal_tpd_ret : prev.ideal_tpd_ret,
-              min_tpd_ret: jsonCmd.min_tpd_ret !== undefined ? jsonCmd.min_tpd_ret : prev.min_tpd_ret,
-              ideal_sharpe: jsonCmd.ideal_sharpe !== undefined ? jsonCmd.ideal_sharpe : prev.ideal_sharpe,
-              min_sharpe: jsonCmd.min_sharpe !== undefined ? jsonCmd.min_sharpe : prev.min_sharpe,
-              min_pnl: jsonCmd.min_pnl !== undefined ? jsonCmd.min_pnl : prev.min_pnl,
-              min_wfe: jsonCmd.min_wfe !== undefined ? jsonCmd.min_wfe : prev.min_wfe,
-              min_ev: jsonCmd.min_ev !== undefined ? jsonCmd.min_ev : prev.min_ev,
-              ideal_tpd: jsonCmd.ideal_tpd !== undefined ? jsonCmd.ideal_tpd : prev.ideal_tpd,
-              min_tpd: jsonCmd.min_tpd !== undefined ? jsonCmd.min_tpd : prev.min_tpd,
-              cw_add: jsonCmd.cw_add !== undefined ? jsonCmd.cw_add : prev.cw_add,
-              cw_al: jsonCmd.cw_al !== undefined ? jsonCmd.cw_al : prev.cw_al,
-              cw_tpd_ret: jsonCmd.cw_tpd_ret !== undefined ? jsonCmd.cw_tpd_ret : prev.cw_tpd_ret,
-              cw_tpd: jsonCmd.cw_tpd !== undefined ? jsonCmd.cw_tpd : prev.cw_tpd,
               oos_list: jsonCmd.oos_list || prev.oos_list,
               hv_oos_list: jsonCmd.hv_oos_list || prev.hv_oos_list,
               lv_oos_list: jsonCmd.lv_oos_list || prev.lv_oos_list,
@@ -245,27 +222,30 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: '16px', maxWidth: '1720px', margin: '0 auto', minHeight: '100vh' }}>
+    <div style={{ padding: '16px', maxWidth: '1720px', margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
       
       {/* GLOBAL TELEMETRY INTERFACE BAR */}
       <div className="animate-cascade seq-0" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--term-border)', backgroundColor: '#070b11', padding: '12px 18px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff', letterSpacing: '0.2px' }}>HEXNET DASHBOARD</h1>
-            <span style={{ fontSize: '10px', padding: '2px 6px', background: '#0c121c', border: '1px solid var(--term-border)', color: '#526685', fontWeight: 'bold' }}>EXE_2.9.9.9.8.0</span>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff', letterSpacing: '0.2px' }}>HEXNET SYSTEM MAIN INTERFACE</h1>
+            <span style={{ fontSize: '10px', padding: '2px 6px', background: '#0c121c', border: '1px solid var(--term-border)', color: '#526685', fontWeight: 'bold' }}>EXE_2.9.9.9.8.6</span>
           </div>
           <div style={{ display: 'flex', gap: '14px', marginTop: '4px', fontSize: '12px' }}>
             <span style={{ color: getStatusColor(), fontWeight: '700' }}>
-              ● CORE_STATUS: {(cmd.engine_status || 'OFFLINE').toUpperCase()}
+              ● SYSTEM_STATUS: {(cmd.engine_status || 'OFFLINE').toUpperCase()}
               {cmd.engine_status === 'fetching' && <span style={{ color: '#00f0ff', marginLeft: '5px' }}>[{cmd.fetch_pct || 0}%]</span>}
             </span>
             <span style={{ color: '#152233' }}>|</span>
-            <span style={{ color: '#526685' }}>Last Synced: <span style={{ color: '#cbd5e1', fontWeight: '700' }}>{lastUpdate}</span></span>
+            <span style={{ color: '#526685' }}>Last Handshake: <span style={{ color: '#cbd5e1', fontWeight: '700' }}>{lastUpdate}</span></span>
           </div>
         </div>
 
         {/* HUD CORE ACTION SHORTCUTS */}
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => setShowLiveCredsDrawer(true)} style={{ backgroundColor: 'transparent', color: '#af40ff', border: '1px solid #af40ff', padding: '6px 14px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+            [🔑 LINK TRADOVATE API]
+          </button>
           <button onClick={() => sendCommand({ status: 'sync_requested' })} disabled={cmd.status === 'sync_requested' || cmd.engine_status === 'offline'} style={{ backgroundColor: 'transparent', color: '#ffaa00', border: '1px solid #ffaa00', padding: '6px 14px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', opacity: (cmd.status === 'sync_requested' || cmd.engine_status === 'offline') ? 0.3 : 1 }}>
             {cmd.status === 'sync_requested' ? 'SYNCING...' : '[↻ FORCE_DESKTOP_SYNC]'}
           </button>
@@ -306,7 +286,7 @@ export default function Home() {
           ) : (
             <div>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#00ff66' }}>
-                <span className="pulse-glow">&gt;&gt;</span> MATRIX CONFIGURED: RUNNING LIVE CLUSTER CALCULATION ROUTINES...
+                <span className="pulse-glow">&gt;&gt;</span> MATRIX ENGINE ARMED: CALCULATING HISTORICAL RADAR SIGNAL LOGS CHANNELS...
               </div>
             </div>
           )}
@@ -316,7 +296,7 @@ export default function Home() {
       {/* MAIN NAVIGATION WORKSPACE TABS */}
       <div className="animate-cascade seq-1" style={{ display: 'flex', borderBottom: '1px solid var(--term-border)', marginBottom: '16px', gap: '4px' }}>
         <button onClick={() => { setActiveTab('portfolio'); }} style={{ padding: '10px 20px', background: activeTab === 'portfolio' ? '#070b11' : 'transparent', color: activeTab === 'portfolio' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'portfolio' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
-          {activeTab === 'portfolio' ? '■ ' : ''}[PORTFOLIO_PERFORMANCE]
+          {activeTab === 'portfolio' ? '■ ' : ''}[LIVEFIRE_PORTFOLIO]
         </button>
         <button onClick={() => { setActiveTab('generator'); }} style={{ padding: '10px 20px', background: activeTab === 'generator' ? '#070b11' : 'transparent', color: activeTab === 'generator' ? '#00f0ff' : '#526685', border: '1px solid var(--term-border)', borderBottom: activeTab === 'generator' ? '1px solid #070b11' : '1px solid var(--term-border)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', marginBottom: '-1px' }}>
           {activeTab === 'generator' ? '■ ' : ''}[STRATEGY_GENERATOR]
@@ -331,39 +311,175 @@ export default function Home() {
         
         {/* TAB 1: PORTFOLIO MAIN PERFORMANCE Workspace */}
         {activeTab === 'portfolio' && (
-          <div key="viewport-portfolio">
-            <div className="animate-cascade seq-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>NET_LIQUIDITY_VAL</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00ff66', marginTop: '4px' }}>$100,000.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>PROP_FIRM ALLOCATION: L1</div>
+          <div key="viewport-portfolio" className="space-y-4">
+            
+            {/* INJECTED INSTANT FUNDING TUNER GRID OVERRIDE CARD */}
+            <div className="bg-[#04070a] border border-[var(--term-border)] p-5 mb-4 shadow-2xl animate-cascade seq-0">
+              <div className="flex flex-wrap items-center justify-between border-b border-[var(--term-border-muted)] pb-3 mb-4">
+                <div className="flex items-center space-x-3">
+                  <span className={`w-3 h-3 inline-block ${cmd.live_trading_enabled ? 'bg-[var(--neon-green)] animate-pulse' : 'bg-[var(--neon-red)]'}`}></span>
+                  <h2 className="text-xs font-bold tracking-wider text-[#ffffff]">TRADEIFY INSTANT FUNDING COUPLER ENGINE</h2>
+                </div>
+                <div className="flex flex-wrap gap-4 text-xs font-mono">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[var(--term-muted)]">STRATEGY LAYER:</span>
+                    <select 
+                      value={cmd.active_live_strategy} 
+                      onChange={(e) => sendCommand({ active_live_strategy: e.target.value })}
+                      className="bg-[#0c121c] text-[var(--neon-cyan)] border border-[var(--term-border)] px-2 py-1 font-bold rounded-none outline-none"
+                    >
+                      <option value="None Locked">None Locked</option>
+                      {(cmd.available_strats || []).map((s, idx) => (
+                        <option key={idx} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[var(--term-muted)]">POLL INTERVAL:</span>
+                    <input 
+                      type="number" 
+                      value={cmd.live_refresh_interval} 
+                      onChange={(e) => sendCommand({ live_refresh_interval: parseInt(e.target.value) || 1 })}
+                      className="bg-[#0c121c] text-[var(--neon-amber)] border border-[var(--term-border)] w-14 px-2 py-0.5 text-center font-bold"
+                    />
+                    <span className="text-[var(--term-muted)]">s</span>
+                  </div>
+                </div>
               </div>
-              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>FLOATING_MARGIN_PNL</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00f0ff', marginTop: '4px' }}>$0.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>0 ACTIVE RISK POSITION VECTORS</div>
-              </div>
-              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>MAX_DAILY_DRAWDOWN_LIMIT</div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffaa00', marginTop: '4px' }}>$5,000.00</div>
-                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>VIOLATION EXPOSURE: LEVEL CLEAN</div>
-              </div>
-              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
-                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>LIVEFIRE_GATE_LINK</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff3366', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="pulse-glow" style={{ fontSize: '14px' }}>■</span> DISCONNECTED_STANDBY
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div className="bg-[#020406] p-4 border border-[var(--term-border-muted)] flex flex-col justify-between space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={cmd.live_trading_enabled || false}
+                      onChange={(e) => sendCommand({ live_trading_enabled: e.target.checked, emergency_flatten_requested: false })}
+                      className="accent-[var(--neon-green)] h-4 w-4 bg-[var(--term-bg)] border-[var(--term-border)]"
+                    />
+                    <span className={`text-xs font-bold font-mono tracking-widest ${cmd.live_trading_enabled ? 'text-[var(--neon-green)]' : 'text-[var(--neon-red)]'}`}>
+                      {cmd.live_trading_enabled ? 'ALGO_TRADING: RUNNING' : 'ALGO_TRADING: MUTED'}
+                    </span>
+                  </label>
+                  <button 
+                    onClick={() => sendCommand({ emergency_flatten_requested: true, live_trading_enabled: false, status: 'flatten_triggered' })}
+                    className="w-full bg-[#1c060e] text-[var(--neon-red)] border border-[var(--neon-red)] hover:bg-[var(--neon-red)] hover:text-[#020406] text-xs font-bold py-2 px-3 tracking-widest font-mono transition-all duration-150"
+                  >
+                    🚨 EMERGENCY FLATTEN ALL
+                  </button>
+                </div>
+
+                <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-5 gap-2.5">
+                  {[
+                    { label: "DEF CONTRACTS", key: "def_contracts" },
+                    { label: "LOSS ADD", key: "loss_add" },
+                    { label: "WIN SUB", key: "win_sub" },
+                    { label: "CONTRACT MIN", key: "contract_min" },
+                    { label: "CONTRACT MAX", key: "contract_max" },
+                  ].map((card, i) => (
+                    <div key={i} className="bg-[#020406] border border-[var(--term-border-muted)] p-3 text-center flex flex-col justify-between">
+                      <div className="text-[9px] text-[var(--term-muted)] font-bold tracking-wider mb-1">{card.label}</div>
+                      <input 
+                        type="number" 
+                        value={cmd.live_scaling?.[card.key] ?? 0}
+                        onChange={(e) => {
+                          const scalingCopy = { ...cmd.live_scaling };
+                          scalingCopy[card.key] = parseInt(e.target.value) || 0;
+                          sendCommand({ live_scaling: scalingCopy });
+                        }}
+                        className="w-full bg-[#0c121c] text-[#ffffff] border border-[var(--term-border)] text-center font-bold font-mono py-1 text-xs"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* ACCOUNT CORE HIGH-DENSITY GRID CANVAS GRAPH */}
-            <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '16px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
-                <span style={{ color: '#00f0ff', fontWeight: '700' }}>[PORTFOLIO_EQUITY_FEED_REALTIME]</span>
-                <span style={{ color: '#526685' }}>COORDINATES: SECURE</span>
+            {/* LIVE CONSOLE MONITOR TELEMETRY BLOCKS */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 animate-cascade seq-1">
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>TRADEIFY ACCOUNT LIQUIDITY</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00ff66', marginTop: '4px' }}>$100,000.00</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>ENVIRONMENT SIZE: 100K LIGHTNING</div>
               </div>
-              <div style={{ height: '220px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '8px' }}>
-                {[105000, 100000, 95000].map((val) => (
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>REALTIME TRANSACTION VECTOR PNL</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#00f0ff', marginTop: '4px' }}>$0.00</div>
+                <div style={{ fontSize: '10px', color: '#526685', marginTop: '4px' }}>ZERO EXCH ORDERS ACTIVE ON WIRE</div>
+              </div>
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>EOD TRAILING MAX LOSS RISK BARRIER</div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffaa00', marginTop: '4px' }}>$96,000.00</div>
+                <div style={{ fontSize: '10px', color: '#ff3366', marginTop: '4px', fontWeight: 'bold' }}>MAX_CUSHION: $4,000 TOTAL</div>
+              </div>
+              <div style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+                <div style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>HARDWARE DESKTOP ENGINE LINK</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: cmd.engine_status !== 'offline' ? '#00ff66' : '#ff3366', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="className" style={{ fontSize: '14px' }}>■</span> {cmd.engine_status !== 'offline' ? 'GATEWAY CONNECTED' : 'AWAITING HANDSHAKE PING'}
+                </div>
+              </div>
+            </div>
+
+            {/* LIVE HISTORICAL RECONCILIATION & SYNC MATRIX HUB */}
+            <div className="bg-[#020406] border border-[var(--term-border)] p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs animate-cascade seq-2">
+              {/* Box 1: Sandbox calibration */}
+              <div className="border border-[var(--term-border-muted)] p-3 space-y-3 bg-[#04070a]">
+                <div className="text-[var(--neon-cyan)] font-bold border-b border-[var(--term-border-muted)] pb-1.5">[1] SANDBOX DATABENTO CALIBRATION</div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] text-[var(--term-muted)]">TARGET LOCAL DATABENTO FILE SOURCING:</label>
+                  <input 
+                    type="text" 
+                    value={cmd.sandbox_csv_name} 
+                    onChange={(e) => sendCommand({ sandbox_csv_name: e.target.value })}
+                    className="bg-[#0c121c] text-[#ffffff] border border-[var(--term-border)] p-1.5 outline-none font-bold"
+                  />
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <button 
+                    onClick={() => sendCommand({ status: 'sandbox_check_requested' })}
+                    disabled={cmd.status === 'sandbox_check_requested' || cmd.engine_status === 'offline'}
+                    className="bg-[#0c121c] text-[var(--neon-amber)] border border-[#ffaa00] hover:bg-[#ffaa00] hover:text-[#020406] px-3 py-1.5 font-bold transition-all"
+                  >
+                    RUN VARIANCE MATCH TEST
+                  </button>
+                  <div className="text-right">
+                    <div className="text-[9px] text-[var(--term-muted)]">TEST REPORT OUTPUT STATE:</div>
+                    <div className="font-bold text-[#ffffff]">{cmd.sandbox_test_results}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 2: Deduplicated auto-append engine */}
+              <div className="border border-[var(--term-border-muted)] p-3 space-y-3 bg-[#04070a]">
+                <div className="text-[var(--neon-cyan)] font-bold border-b border-[var(--term-border-muted)] pb-1.5">[2] DEDUPLICATED HISTORICAL FILE RECORDER</div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] text-[var(--term-muted)]">APPEND TARGET DISK LOCAL STORAGE CACHE PATH:</label>
+                  <input 
+                    type="text" 
+                    value={cmd.sync_target_csv} 
+                    onChange={(e) => sendCommand({ sync_target_csv: e.target.value })}
+                    className="bg-[#0c121c] text-[#ffffff] border border-[var(--term-border)] p-1.5 outline-none font-bold"
+                  />
+                </div>
+                <div className="pt-1">
+                  <button 
+                    onClick={() => sendCommand({ status: 'csv_sync_requested' })}
+                    disabled={cmd.status === 'csv_sync_requested' || cmd.engine_status === 'offline'}
+                    className="bg-[#0c121c] text-[var(--neon-green)] border border-[#00ff66] hover:bg-[#00ff66] hover:text-[#020406] px-4 py-1.5 font-bold transition-all"
+                  >
+                    RUN APPEND PACKETS DEDUPLICATION RUN
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ACCOUNT MASTER LIVE CHART FRAME */}
+            <div className="animate-cascade seq-3" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
+                <span style={{ color: '#00f0ff', fontWeight: '700' }}>[PORTFOLIO_REALTIME_STREAM_CANVAS]</span>
+                <span style={{ color: '#526685' }}>TRANSMISSION TIMELINE ACTIVE</span>
+              </div>
+              <div style={{ height: '260px', position: 'relative', border: '1px dashed var(--term-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '8px' }}>
+                {[102000, 100000, 98000].map((val) => (
                   <div key={val} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(21, 34, 51, 0.15)', height: '25%' }}>
                     <span style={{ fontSize: '10px', color: '#526685' }}>${val.toLocaleString()}</span>
                     <span style={{ fontSize: '10px', color: '#101a26' }}>--------------------------------------------------------------------------------------------------</span>
@@ -371,19 +487,19 @@ export default function Home() {
                 ))}
                 <div style={{ position: 'absolute', top: '0', left: '0', right: '0', bottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ fontSize: '12px', color: '#526685', background: '#020406', padding: '6px 12px', border: '1px solid var(--term-border)' }}>
-                    &gt; LOGISTICAL SYSTEM COLD — STANDBY FOR PLATFORM CORE ALLOCATION LINK ARRAYS
+                    &gt; WAITING FOR RECON PACKETS HANDSHAKE FROM THE SYSTEM HARDWARE WORKER DECK...
                   </div>
                 </div>
               </div>
             </div>
 
             {/* REALTIME SYSTEM STDOUT OUTPUT WRAPPER FEED */}
-            <div className="animate-cascade seq-2" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
+            <div className="animate-cascade seq-4" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px' }}>
               <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '10px' }}>LIVEFIRE_LOG_STREAM (STDOUT)</div>
               <div style={{ fontSize: '12px', color: '#526685', lineHeight: '1.5', background: '#04070a', padding: '10px', border: '1px solid var(--term-border-muted)', height: '110px', overflowY: 'auto' }}>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> Core modules compiled inside local node stack.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[KV]</span> Command synchronization matrix loop live.</div>
-                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Prop API broker waiting in clean standby setup parameters.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[SYS]</span> Tradovate unified single-ticket bracket builders compiled.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#00f0ff' }}>[CORE]</span> Non-repeating data frame deduplication engines online.</div>
+                <div>[{new Date().toISOString().slice(0,10)} 00:01] <span style={{ color: '#ffaa00' }}>[ROUTER]</span> Active live session tracking connected over Redis.</div>
                 <div><span className="pulse-glow" style={{ color: '#00ff66' }}>■</span></div>
               </div>
             </div>
@@ -393,7 +509,6 @@ export default function Home() {
         {/* TAB 2: STRATEGY GENERATOR */}
         {activeTab === 'generator' && (
           <div key="viewport-generator">
-            {/* DATA ENGINE ROUTING INTERFACE SECTION */}
             <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -428,7 +543,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* GENERATOR SYSTEM WORKSPACE CORE SETTINGS */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid var(--term-border)', paddingBottom: '12px', marginBottom: '12px' }}>
                 <select value={cmd.mode} onChange={(e) => sendCommand({ mode: e.target.value })} style={{ padding: '5px', background: '#070b11', color: '#ffffff', border: '1px solid var(--term-border)', width: '220px' }}>
@@ -499,7 +613,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* DYNAMIC FITNESS CRITERIA WEIGHT CALCULATORS */}
               {cmd.sort === 'Custom Score' && (
                 <div className="animate-cascade seq-2" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px', background: '#070b11', border: '1px dashed #00f0ff', marginBottom: '12px' }}>
                   {[
@@ -515,7 +628,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* TIMEFRAME MODULAR SELECTION GENERATOR */}
               <div className="animate-cascade seq-3">
                 {cmd.mode === 'Generate Advanced Optimal Strategy' ? (
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -577,7 +689,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* STREAMLINED LOW-PROFILE PARAMETER CRITERIA ADVANCED FILTER GRID */}
               {cmd.adv_enabled && (
                 <div className="animate-cascade seq-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', padding: '10px', background: '#04070a', border: '1px dashed rgba(255,170,0,0.4)', marginTop: '12px' }}>
                   {[
@@ -608,16 +719,13 @@ export default function Home() {
         {/* TAB 3: LIVE PERFORMANCE BACKTESTER */}
         {activeTab === 'backtester' && (
           <div key="viewport-backtester" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '16px' }}>
-            
-            {/* EXPANDED CONTROL MODULE: RE-ENGINEERED PERSISTENT SELECTION MATRIX VIEWPORT */}
-            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', height: '490px', justifyContent: 'space-between' }}>
+            <div className="animate-cascade seq-0" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', height: '490px', Biscuit_Scaler: 'space-between', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
                 <h2 style={{ margin: '0 0 4px 0', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>[STRATEGY_SELECTOR]</h2>
                 <p style={{ color: '#526685', marginBottom: '12px', fontSize: '11px' }}>Assign dynamic node matrices to run historical verification across the cluster loop.</p>
                 
-                {/* --- PURE REACT CHECKLIST VIEWPORT ENGINE (ZERO BLUR SIDE EFFECTS) --- */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minHeight: 0, marginBottom: '10px' }}>
-                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK (CLICK TO SELECT / TOGGLE NODE ENTRANCES)</label>
+                  <label style={{ fontSize: '10px', color: '#526685', fontWeight: '700' }}>ASSIGNMENT VECTOR STACK (CLICK TO TOGGLE INDIVIDUAL STRATEGY ENTRANCES)</label>
                   <div style={{ width: '100%', flex: 1, background: '#070b11', border: '1px solid var(--term-border)', overflowY: 'auto', padding: '2px' }}>
                     {cmd.available_strats && cmd.available_strats.length > 0 ? (
                       cmd.available_strats.map((strat, i) => {
@@ -648,13 +756,12 @@ export default function Home() {
                         );
                       })
                     ) : (
-                      <div style={{ color: '#526685', padding: '12px', fontSize: '11px' }}>AWAITING DESKTOP SYSTEM RAM MATRIX INSTANCES FLOW...</div>
+                      <div style={{ color: '#526685', padding: '12px', fontSize: '11px' }}>AWAITING DESKTOP SYSTEM RAM CONFIG ARCHITECTURE SIGNALS...</div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* INDUSTRIAL SCALE LAUNCH STACK TRIGGERS */}
               <button 
                 onClick={startBacktest}
                 disabled={!cmd.active_strats || cmd.active_strats.length === 0 || cmd.engine_status === 'running'}
@@ -669,12 +776,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* EXPANDED GRAPH MONITOR VISUAL CANVAS CARD (TALL, SCALED, & COMPACT GRAPH) */}
             <div className="animate-cascade seq-1" style={{ background: '#020406', border: '1px solid var(--term-border)', padding: '14px', display: 'flex', flexDirection: 'column', height: '490px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '8px', flexShrink: 0 }}>
-                <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTER_VECTOR_CANVAS]</span>
-                
-                {/* Dynamic Strategy Selector Dropdown for Graph Scaling */}
+                <span style={{ color: '#00f0ff', fontWeight: '700' }}>[BACKTESTMENT_CANVAS_RENDERER]</span>
                 {data && data.length > 0 && (
                   <select 
                     value={selectedBacktestStrat || (data[0]?.Name || "")} 
@@ -688,21 +792,19 @@ export default function Home() {
                 )}
               </div>
               
-              {/* MAXIMIZED INNER BOUNDS ALLOWS VECTOR GRAPH TO GRACEFULLY OCCUPY VACANT WORKSPACE */}
               <div style={{ flex: 1, position: 'relative', border: '1px dashed var(--term-border)', padding: '8px 6px 4px 6px', overflow: 'hidden' }}>
                 {data && data.length > 0 ? (
                   <FullCanvasGraph data={data} strategyName={selectedBacktestStrat || data[0]?.Name} />
                 ) : (
                   <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ color: '#526685', fontSize: '11px', padding: '10px', textAlign: 'center' }}>
-                      [AWAITING RUN CLUSTER TRIGGER COMMAND VALIDATION]
+                      [AWAITING RECON SIGNAL TRANSMISSION ARRAY BUFFER]
                     </span>
                   </div>
                 )}
                 <div style={{ position: 'absolute', bottom: '4px', right: '6px', fontSize: '8px', color: '#152233', pointerEvents: 'none', zIndex: 10 }}>NODE_GRAPH_2D</div>
               </div>
             </div>
-
           </div>
         )}
 
@@ -718,7 +820,7 @@ export default function Home() {
             
             {data.length === 0 ? ( 
               <div style={{ padding: '28px', textAlign: 'center', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
-                <h3 style={{ color: '#526685', fontSize: '12px' }}>&gt;&gt; PIPELINE EMPTY: AWAITING CORE AGENT SIGNAL FEED TRANSACTION ARRAY...</h3> 
+                <h3 style={{ color: '#526685', fontSize: '12px' }}>&gt;&gt; PIPELINE EMPTY: AWAITING INTERFACE ARMED SIGNAL CONVERGENCE TRANSACTION INDEX...</h3> 
               </div> 
             ) : ( 
               <div style={{ overflowX: 'auto', backgroundColor: '#020406', border: '1px solid var(--term-border)' }}> 
@@ -784,6 +886,51 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* --- ASYNCHRONOUS TRADOVATE API CREDENTIALS FLOATING DRAWER PANEL --- */}
+      {showLiveCredsDrawer && (
+        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '420px', backgroundColor: '#070b11', borderLeft: '1px solid var(--term-border)', zIndex: 1000, padding: '20px', boxShadow: '-10px 0 30px rgba(0,0,0,0.5)', fontFamily: 'Fira Code', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--term-border)', paddingBottom: '10px', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, color: '#af40ff', fontSize: '13px', fontWeight: 'bold' }}>TRADOVATE API CONNECTION GATEWAY</h3>
+            <button onClick={() => setShowLiveCredsDrawer(false)} style={{ background: 'transparent', color: '#ff3366', border: '1px solid #ff3366', padding: '2px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>[CLOSE]</button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '11px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ color: '#526685', fontWeight: 'bold' }}>BROKER CONNECTION ROUTE ENVIRONMENT</label>
+              <select value={cmd.tradovate_environment} onChange={(e) => sendCommand({ tradovate_environment: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid var(--term-border)', outline: 'none' }}>
+                <option value="Demo">Simulation Sandbox (Demo API)</option>
+                <option value="Live">Live Capital Fire (Live API Execution)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ color: '#526685', fontWeight: 'bold' }}>TRADOVATE ACCOUNT USERNAME</label>
+              <input type="text" value={cmd.tradovate_username} onChange={(e) => sendCommand({ tradovate_username: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid var(--term-border)', outline: 'none' }} placeholder="Prop account id string..." />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ color: '#526685', fontWeight: 'bold' }}>TRADOVATE PASSWORD SECURE HASH</label>
+              <input type="password" value={cmd.tradovate_password} onChange={(e) => sendCommand({ tradovate_password: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid var(--term-border)', outline: 'none' }} placeholder="••••••••" />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ color: '#526685', fontWeight: 'bold' }}>TRADOVATE MASTER APPLICATION API KEY</label>
+              <input type="text" value={cmd.tradovate_app_key} onChange={(e) => sendCommand({ tradovate_app_key: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid var(--term-border)', outline: 'none' }} placeholder="App key tracking hash..." />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ color: '#526685', fontWeight: 'bold' }}>TRADOVATE SECRET APP ID VERIFIER</label>
+              <input type="password" value={cmd.tradovate_sec_key} onChange={(e) => sendCommand({ tradovate_sec_key: e.target.value })} style={{ padding: '6px', background: '#0c121c', color: '#ffffff', border: '1px solid var(--term-border)', outline: 'none' }} placeholder="Secret hash..." />
+            </div>
+
+            <div style={{ marginTop: '10px', background: '#0c121c', padding: '10px', border: '1px dashed var(--term-border)', color: '#526685', fontSize: '10px', lineHeight: '1.4' }}>
+              * INFO: These keys synchronize straight to your secure state over SSL. Hexnet Desktop uses these variables to authenticate direct REST/WS sessions with Tradovate exchange systems.
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
